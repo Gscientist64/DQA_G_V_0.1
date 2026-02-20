@@ -1,0 +1,291 @@
+<!-- templates/results.html - ENHANCED COLORFUL VERSION -->
+
+{% extends "base.html" %}
+
+{% block title %}DQA Results & Rankings{% endblock %}
+
+{% block content %}
+{% set ranked = all_facilities | sort(attribute='Score', reverse=true) %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <!-- Header with Gradient -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-bold mb-3">🏆 DQA Results & Rankings</h1>
+                    <p class="text-blue-100 text-lg">Comprehensive performance results and facility rankings</p>
+                    <div class="flex items-center mt-4 space-x-4">
+                        <span class="px-3 py-1 bg-white/20 rounded-full text-sm">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Quarter: {{ stats.last_updated_formatted if stats and stats.last_updated_formatted else 'Current' }}
+                        </span>
+                        <span class="px-3 py-1 bg-white/20 rounded-full text-sm">
+                            <i class="fas fa-hospital mr-2"></i>
+                            {{ stats.total_facilities if stats else all_facilities|length }} Facilities
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="text-center bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
+                        <p class="text-blue-100 text-sm mb-1">Average Score</p>
+                        <p class="text-3xl font-bold">
+                            {% if all_facilities|length > 0 %}
+                                {{ "%.1f"|format((all_facilities|map(attribute='Score')|sum / all_facilities|length)) }}%
+                            {% else %}
+                                0.0%
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if all_facilities and all_facilities|length > 0 %}
+                    <a href="{{ url_for('routes.export_excel') }}"
+                       class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition transform hover:-translate-y-1 shadow-lg">
+                        <i class="fas fa-file-excel mr-3 text-xl"></i>
+                        Export Results
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6">
+        {% if all_facilities and all_facilities|length > 0 %}
+
+        <!-- Championship Podium Section -->
+        <div class="mb-12">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">🏅 Championship Podium</h2>
+                <p class="text-slate-600 max-w-3xl mx-auto">
+                    Top performers recognized for exceptional DQA performance across all metrics
+                </p>
+            </div>
+
+            <div class="flex items-end justify-center space-x-4 mb-12 px-4">
+                {% if all_facilities|length >= 2 %}
+                <!-- 2nd Place (Silver) -->
+                <div class="text-center flex-1 max-w-xs">
+                    <div class="bg-gradient-to-b from-slate-200 to-slate-300 rounded-t-2xl p-6 relative h-48 flex flex-col justify-end">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
+                                2
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">
+                            {{ ranked[1].Facility | truncate(20) }}
+                        </h3>
+                        <div class="text-4xl font-bold text-slate-700 mb-2">
+                            {{ "%.1f"|format(ranked[1].Score) }}%
+                        </div>
+                        <div class="text-sm text-slate-600">SILVER MEDAL</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 1st Place (Gold) -->
+                <div class="text-center flex-1 max-w-xs">
+                    <div class="bg-gradient-to-b from-amber-200 to-amber-300 rounded-t-2xl p-8 relative h-64 flex flex-col justify-end">
+                        <div class="absolute -top-10 left-1/2 transform -translate-x-1/2">
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-xl">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-amber-900 mb-3">
+                            {{ ranked[0].Facility | truncate(20) }}
+                        </h3>
+                        <div class="text-5xl font-bold text-amber-800 mb-3">
+                            {{ "%.1f"|format(ranked[0].Score) }}%
+                        </div>
+                        <div class="text-sm font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+                            GOLD CHAMPION
+                        </div>
+                    </div>
+                </div>
+
+                {% if all_facilities|length >= 3 %}
+                <!-- 3rd Place (Bronze) -->
+                <div class="text-center flex-1 max-w-xs">
+                    <div class="bg-gradient-to-b from-amber-700 to-amber-800 rounded-t-2xl p-6 relative h-40 flex flex-col justify-end">
+                        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-800 to-amber-900 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg">
+                                3
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-amber-100 mb-2">
+                            {{ ranked[2].Facility | truncate(20) }}
+                        </h3>
+                        <div class="text-4xl font-bold text-amber-50 mb-2">
+                            {{ "%.1f"|format(ranked[2].Score) }}%
+                        </div>
+                        <div class="text-sm text-amber-200">BRONZE MEDAL</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <!-- 4th & 5th Place Recognition -->
+            {% if all_facilities|length >= 5 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- 4th Place -->
+                <div class="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border-2 border-emerald-200 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white text-xl font-bold mr-4">
+                                4
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">{{ ranked[3].Facility }}</h4>
+                                <p class="text-slate-600 text-sm">Excellent Performer</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-emerald-600">
+                                {{ "%.1f"|format(ranked[3].Score) }}%
+                            </div>
+                            <div class="text-sm text-emerald-500">4th Position</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- 5th Place -->
+                <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border-2 border-blue-200 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xl font-bold mr-4">
+                                5
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">{{ ranked[4].Facility }}</h4>
+                                <p class="text-slate-600 text-sm">Strong Contender</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-blue-600">
+                                {{ "%.1f"|format(ranked[4].Score) }}%
+                            </div>
+                            <div class="text-sm text-blue-500">5th Position</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    
+        <!-- Complete Rankings Table -->
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 mb-12 overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-8">
+                <h2 class="text-2xl font-bold text-white">📊 Complete Facility Rankings</h2>
+                <p class="text-slate-300 mt-2">Detailed performance metrics for all participating facilities</p>
+            </div>
+    
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs uppercase bg-slate-50 text-slate-700">
+                        <tr>
+                            <th class="px-6 py-4 font-bold">Rank</th>
+                            <th class="px-6 py-4 font-bold">Facility</th>
+                            <th class="px-6 py-4 font-bold">Quarter</th>
+                            <th class="px-6 py-4 font-bold text-right">DVV</th>
+                            <th class="px-6 py-4 font-bold text-right">Client Level</th>
+                            <th class="px-6 py-4 font-bold text-right">VL Unsuppressed</th>
+                            <th class="px-6 py-4 font-bold text-right">Final Score</th>
+                            <th class="px-6 py-4 font-bold text-center">Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for facility in ranked %}
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-all duration-200
+                            {% if loop.index == 1 %}bg-gradient-to-r from-amber-50 to-yellow-50
+                            {% elif loop.index == 2 %}bg-gradient-to-r from-blue-50 to-slate-50
+                            {% elif loop.index == 3 %}bg-gradient-to-r from-amber-50 to-orange-50
+                            {% elif loop.index == 4 %}bg-gradient-to-r from-emerald-50 to-green-50
+                            {% elif loop.index == 5 %}bg-gradient-to-r from-blue-50 to-cyan-50
+                            {% elif loop.index <= 10 %}bg-slate-50{% endif %}">
+    
+                            <!-- Rank -->
+                            <td class="px-6 py-4 font-medium">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-lg
+                                        {% if loop.index == 1 %}bg-gradient-to-br from-amber-400 to-yellow-500
+                                        {% elif loop.index == 2 %}bg-gradient-to-br from-slate-400 to-slate-500
+                                        {% elif loop.index == 3 %}bg-gradient-to-br from-amber-700 to-amber-800
+                                        {% elif loop.index == 4 %}bg-gradient-to-br from-emerald-500 to-green-600
+                                        {% elif loop.index == 5 %}bg-gradient-to-br from-blue-500 to-cyan-600
+                                        {% elif loop.index <= 10 %}bg-gradient-to-br from-purple-500 to-pink-600
+                                        {% else %}bg-gradient-to-br from-slate-300 to-slate-400{% endif %}">
+                                        {% if loop.index == 1 %}
+                                            <i class="fas fa-crown text-sm"></i>
+                                        {% else %}
+                                            {{ loop.index }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+    
+                            <!-- Facility -->
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-800 text-lg">{{ facility.Facility }}</div>
+                                <div class="text-slate-500 text-sm mt-1">
+                                    <i class="fas fa-id-badge mr-1"></i>ID: {{ facility.id[:8] }}...
+                                </div>
+                            </td>
+    
+                            <!-- Quarter -->
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1.5 rounded-full text-xs font-semibold">
+                                    {{ facility.quarter if facility.quarter else 'Q1' }}
+                                </span>
+                            </td>
+    
+                            <!-- DVV -->
+                            <td class="px-6 py-4 text-right">
+                                <div class="text-lg font-bold text-emerald-600">{{ "%.1f"|format(facility.DVV) }}%</div>
+                            </td>
+    
+                            <!-- Client Level -->
+                            <td class="px-6 py-4 text-right">
+                                <div class="text-lg font-bold text-cyan-600">
+                                    {{ "%.1f"|format(facility.Client_Level if facility.Client_Level else 0) }}%
+                                </div>
+                            </td>
+    
+                            <!-- VL -->
+                            <td class="px-6 py-4 text-right">
+                                <div class="text-lg font-bold text-purple-600">
+                                    {{ "%.1f"|format(facility.VL_Unsuppressed if facility.VL_Unsuppressed else 0) }}%
+                                </div>
+                            </td>
+    
+                            <!-- Score -->
+                            <td class="px-6 py-4 text-right">
+                                <div class="text-2xl font-bold">
+                                    {{ "%.1f"|format(facility.Score) }}%
+                                </div>
+                            </td>
+    
+                            <!-- Rating -->
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-block px-4 py-2 rounded-full text-sm font-bold">
+                                    {{ facility.rating if facility.rating else 'N/A' }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-20">
+            <h3 class="text-3xl font-bold text-slate-800 mb-4">No Results Available Yet</h3>
+        </div>
+        {% endif %}
+    
+        <!-- Footer -->
+        <div class="text-center text-slate-500 pt-8 border-t border-slate-200">
+            <p>DQA Results & Rankings • Data Analysis System</p>
+        </div>
+    </div>
+    {% endblock %}
+    

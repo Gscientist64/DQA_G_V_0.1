@@ -1,0 +1,81 @@
+<!-- DQA/app/templates-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQA Performance Dashboard - Standalone</title>
+    <style>
+        .disabled-feature {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .status-active { background-color: #4caf50; color: white; }
+        .status-disabled { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+    <h1>DQA Performance Dashboard</h1>
+    <p><strong>STANDALONE VERSION</strong> 
+        <span class="status-badge status-active">View Only</span>
+    </p>
+    
+    {% if error %}
+    <div style="color: red; padding: 10px; background: #ffeeee;">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 5px;">
+        <h3>📊 Pre-Analyzed Data Available</h3>
+        <p>Total records: <strong>{{ data_count }}</strong> facilities analyzed</p>
+        <p>Features: 
+            <span class="status-badge {% if upload_enabled %}status-active{% else %}status-disabled{% endif %}">
+                Upload {% if not upload_enabled %}DISABLED{% endif %}
+            </span>
+            <span class="status-badge {% if analysis_enabled %}status-active{% else %}status-disabled{% endif %}">
+                Analysis {% if not analysis_enabled %}DISABLED{% endif %}
+            </span>
+        </p>
+    </div>
+    
+    {% if facilities %}
+    <h2>Available Facilities</h2>
+    <ul>
+        {% for facility in facilities %}
+        <li><a href="/facility/{{ facility }}">{{ facility }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No facilities found in pre-analyzed data.</p>
+    {% endif %}
+    
+    <!-- Upload Section - DISABLED -->
+    <div class="disabled-feature" style="border: 1px dashed #ccc; padding: 20px; margin: 20px 0;">
+        <h3>⬆️ File Upload</h3>
+        <p><em>This feature is disabled in the standalone version.</em></p>
+        <form method="POST" action="/upload" enctype="multipart/form-data">
+            <input type="file" name="file" disabled>
+            <button type="submit" disabled>Upload & Analyze</button>
+        </form>
+    </div>
+    
+    <!-- Export Section - ENABLED -->
+    <div style="border: 1px solid #4caf50; padding: 20px; margin: 20px 0;">
+        <h3>📥 Export Results</h3>
+        <p>Export pre-analyzed data to Excel format.</p>
+        <a href="/export/results">
+            <button>Export to Excel</button>
+        </a>
+    </div>
+</body>
+</html>

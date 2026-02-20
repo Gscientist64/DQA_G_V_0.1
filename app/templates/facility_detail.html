@@ -1,0 +1,773 @@
+<!-- templates/facility_detail.html -->
+
+{% extends "base.html" %}
+
+{% block title %}{{ facility.Facility }} – DQA Breakdown{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <p class="text-xs uppercase tracking-[0.25em] text-slate-500">
+                            Facility DQA breakdown
+                        </p>
+                        {% if facility.rating %}
+                        <span class="text-xs px-2 py-1 rounded-full 
+                            {% if facility.rating == 'Excellent' %}bg-emerald-100 text-emerald-800
+                            {% elif facility.rating == 'Good' %}bg-blue-100 text-blue-800
+                            {% elif facility.rating == 'Poor' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ facility.rating }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-slate-900">
+                        {{ facility.Facility }}
+                    </h1>
+                    <div class="flex items-center space-x-4 text-sm text-slate-600">
+                        {% if facility.quarter %}
+                        <div>
+                            Quarter: <span class="font-semibold text-emerald-600">{{ facility.quarter }}</span>
+                        </div>
+                        {% endif %}
+                        {% if facility.upload_timestamp %}
+                        <div>
+                            Processed: <span class="font-medium">{{ facility.upload_timestamp[:10] }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    {% if facility.warnings %}
+                    <div class="relative group">
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            {{ facility.warnings|length }} warning{% if facility.warnings|length > 1 %}s{% endif %}
+                        </span>
+                        <div class="hidden group-hover:block absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 z-10 p-3">
+                            <p class="text-xs font-medium text-slate-900 mb-2">Processing Warnings:</p>
+                            <ul class="text-xs text-slate-600 space-y-1">
+                                {% for warning in facility.warnings[:3] %}
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-circle text-yellow-500 mt-0.5 mr-2 flex-shrink-0"></i>
+                                    <span>{{ warning }}</span>
+                                </li>
+                                {% endfor %}
+                                {% if facility.warnings|length > 3 %}
+                                <li class="text-xs text-slate-500">+ {{ facility.warnings|length - 3 }} more</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('routes.performance', quarter=facility.quarter) }}"
+                       class="inline-flex items-center px-4 py-2 rounded-full bg-slate-100 border border-slate-300 text-sm text-slate-700 hover:bg-slate-200 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Performance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Action Buttons -->
+        <div class="flex justify-end mb-6 space-x-3">
+            <a href="{{ url_for('routes.debug_extraction', facility_id=facility.id) }}" 
+               target="_blank"
+               class="inline-flex items-center px-4 py-2 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-xl text-sm hover:bg-yellow-100 transition">
+                <i class="fas fa-bug mr-2"></i>
+                Debug Extraction
+            </a>
+            <a href="{{ url_for('routes.debug_facility', facility_id=facility.id) }}" 
+               target="_blank"
+               class="inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-300 text-slate-700 rounded-xl text-sm hover:bg-slate-100 transition">
+                <i class="fas fa-code mr-2"></i>
+                View Raw Data
+            </a>
+            <a href="{{ url_for('routes.export_excel') }}" 
+               class="inline-flex items-center px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium hover:bg-emerald-100 transition">
+                <i class="fas fa-file-excel mr-2"></i>
+                Export All to Excel
+            </a>
+        </div>
+
+        <!-- Summary cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Final DQA Score -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <p class="text-xs uppercase tracking-wide text-slate-500">Final DQA Score</p>
+                <p class="mt-1 text-3xl font-bold text-emerald-600">
+                    {{ "%.2f"|format(facility.Score) }}%
+                </p>
+                <div class="mt-2 flex items-center">
+                    <div class="w-full bg-slate-200 rounded-full h-2">
+                        <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ facility.Score }}%"></div>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-slate-500">
+                    (DVV + Client Level + VL Unsuppressed) ÷ 3
+                </p>
+            </div>
+
+            <!-- DVV -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <p class="text-xs uppercase tracking-wide text-slate-500">DVV Score</p>
+                <p class="mt-1 text-3xl font-bold text-cyan-600">
+                    {{ "%.2f"|format(facility.DVV) }}%
+                </p>
+                <p class="mt-2 text-xs text-slate-500">
+                    From AS97 in DVV Template
+                </p>
+            </div>
+
+            <!-- Client Level -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <p class="text-xs uppercase tracking-wide text-slate-500">Client Level</p>
+                {% if facility.Client_Level is not none %}
+                    <p class="mt-1 text-3xl font-bold text-blue-600">
+                        {{ "%.2f"|format(facility.Client_Level) }}%
+                    </p>
+                    <p class="mt-2 text-xs text-slate-500">
+                        {{ facility.breakdowns.client_level|length if facility.breakdowns and facility.breakdowns.client_level else 12 }} columns (AA-AL)
+                    </p>
+                {% else %}
+                    <p class="mt-1 text-sm text-slate-400">Not available</p>
+                {% endif %}
+            </div>
+
+            <!-- VL Unsuppressed -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <p class="text-xs uppercase tracking-wide text-slate-500">VL Unsuppressed</p>
+                {% if facility.VL_Unsuppressed is not none %}
+                    <p class="mt-1 text-3xl font-bold text-purple-600">
+                        {{ "%.2f"|format(facility.VL_Unsuppressed) }}%
+                    </p>
+                    <p class="mt-2 text-xs text-slate-500">
+                        {{ facility.breakdowns.vl_unsuppressed|length if facility.breakdowns and facility.breakdowns.vl_unsuppressed else 13 }} columns (AA-AM)
+                    </p>
+                {% else %}
+                    <p class="mt-1 text-sm text-slate-400">Not available</p>
+                {% endif %}
+            </div>
+
+            <!-- DQA Components -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 sm:col-span-2 lg:col-span-4">
+                <p class="text-xs uppercase tracking-wide text-slate-500 mb-4">DQA Components</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <p class="text-sm font-medium text-emerald-800 mb-1">Availability</p>
+                        <p class="text-2xl font-bold text-emerald-600">
+                            {% if facility.Availability is not none %}
+                                {{ "%.2f"|format(facility.Availability) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                        <p class="text-sm font-medium text-blue-800 mb-1">Integrity</p>
+                        <p class="text-2xl font-bold text-blue-600">
+                            {% if facility.Integrity is not none %}
+                                {{ "%.2f"|format(facility.Integrity) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                        <p class="text-sm font-medium text-purple-800 mb-1">Consistency</p>
+                        <p class="text-2xl font-bold text-purple-600">
+                            {% if facility.Consistency is not none %}
+                                {{ "%.2f"|format(facility.Consistency) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section tabs -->
+        <section class="mb-6">
+            <div class="inline-flex rounded-full bg-slate-100 border border-slate-300 p-1">
+                <button id="tab-summary"
+                        class="tab-btn px-4 py-1 text-xs md:text-sm rounded-full bg-emerald-500 text-white font-semibold">
+                    Summary
+                </button>
+                <button id="tab-thematic"
+                        class="tab-btn px-4 py-1 text-xs md:text-sm rounded-full text-slate-700">
+                    Thematic Areas
+                </button>
+                <button id="tab-breakdowns"
+                        class="tab-btn px-4 py-1 text-xs md:text-sm rounded-full text-slate-700">
+                    Column Breakdowns
+                </button>
+                <button id="tab-files"
+                        class="tab-btn px-4 py-1 text-xs md:text-sm rounded-full text-slate-700">
+                    File Information
+                </button>
+            </div>
+        </section>
+
+        <!-- SUMMARY SECTION -->
+        <section id="section-summary" class="space-y-4">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-4">Performance Summary</h2>
+                <p class="text-slate-700 leading-relaxed mb-6">
+                    This summary shows the overall DQA performance for
+                    <span class="font-semibold text-emerald-600">{{ facility.Facility }}</span>.
+                    The final score is calculated from three components: DVV, Client Level, and VL Unsuppressed.
+                </p>
+
+                <!-- Score Calculation -->
+                <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <h3 class="font-semibold text-slate-900 mb-2">Score Calculation Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-3 bg-white rounded-lg border border-slate-200">
+                            <h4 class="font-medium text-slate-900 mb-1">DVV Score</h4>
+                            <p class="text-sm text-slate-600">Extracted from AS97 cell in DVV Template</p>
+                            <p class="text-lg font-bold text-emerald-600 mt-2">{{ "%.2f"|format(facility.DVV) }}%</p>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-slate-200">
+                            <h4 class="font-medium text-slate-900 mb-1">Client Level</h4>
+                            <p class="text-sm text-slate-600">Average of 12 TRUE/FALSE columns (AA to AL)</p>
+                            <p class="text-lg font-bold text-emerald-600 mt-2">{{ "%.2f"|format(facility.Client_Level) }}%</p>
+                        </div>
+                        <div class="p-3 bg-white rounded-lg border border-slate-200">
+                            <h4 class="font-medium text-slate-900 mb-1">VL Unsuppressed</h4>
+                            <p class="text-sm text-slate-600">Average of 13 TRUE/FALSE columns (AA to AM)</p>
+                            <p class="text-lg font-bold text-emerald-600 mt-2">{{ "%.2f"|format(facility.VL_Unsuppressed) }}%</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-slate-900">Final Score Calculation:</span>
+                            <span class="text-lg font-bold text-emerald-600">{{ "%.2f"|format(facility.Score) }}%</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1 text-center">
+                            ({{ "%.2f"|format(facility.DVV) }} + {{ "%.2f"|format(facility.Client_Level) }} + {{ "%.2f"|format(facility.VL_Unsuppressed) }}) ÷ 3 = {{ "%.2f"|format(facility.Score) }}%
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Performance Rating -->
+                <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <h3 class="font-semibold text-slate-900 mb-2">Performance Rating</h3>
+                    {% if facility.rating %}
+                    <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+                        <div class="flex items-center">
+                            {% if facility.rating == 'Excellent' %}
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-trophy text-emerald-600"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-emerald-700">Excellent</span>
+                                <p class="text-sm text-slate-600">Outstanding data quality performance</p>
+                            </div>
+                            {% elif facility.rating == 'Good' %}
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-check-circle text-blue-600"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-blue-700">Good</span>
+                                <p class="text-sm text-slate-600">Good performance with minor improvements needed</p>
+                            </div>
+                            {% elif facility.rating == 'Poor' %}
+                            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-yellow-700">Poor</span>
+                                <p class="text-sm text-slate-600">Moderate performance, improvements recommended</p>
+                            </div>
+                            {% else %}
+                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                                <i class="fas fa-times-circle text-red-600"></i>
+                            </div>
+                            <div>
+                                <span class="font-semibold text-red-700">Needs Improvement</span>
+                                <p class="text-sm text-slate-600">Significant improvements needed in data quality</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <span class="text-2xl font-bold 
+                            {% if facility.rating == 'Excellent' %}text-emerald-600
+                            {% elif facility.rating == 'Good' %}text-blue-600
+                            {% elif facility.rating == 'Poor' %}text-yellow-600
+                            {% else %}text-red-600{% endif %}">
+                            {{ "%.2f"|format(facility.Score) }}%
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-slate-600">No rating available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- THEMATIC SECTION - SIMPLIFIED WITH PIE CHARTS -->
+        <section id="section-thematic" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-slate-900">Thematic Area Performance</h2>
+                    <p class="text-sm text-slate-500">
+                        Scores extracted from Dataset codes in DVV Template
+                    </p>
+                </div>
+
+                {# Check if thematic_areas exists and has data #}
+                {% set thematic_data = facility.get('thematic_areas', []) %}
+                {% set thematic_kpis = facility.get('thematic_kpis', {}) %}
+                
+                {% if thematic_data and thematic_data|length > 0 %}
+                    <!-- KPI Summary Cards with Pie Charts -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        {% for category, data in thematic_kpis.items() if data.get('average', 0) > 0 %}
+                        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">{{ data.get('display_name', category) }}</p>
+                                    <p class="text-xs text-slate-500">{{ data.get('indicators', [])|length }} indicators</p>
+                                </div>
+                                <div class="relative w-16 h-16">
+                                    <canvas id="pie-{{ category|lower }}" width="64" height="64"></canvas>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="text-lg font-bold text-emerald-600">{{ "%.1f"|format(data.get('average', 0)) }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ data.get('average', 0) }}%"></div>
+                            </div>
+                            
+                            {% if data.get('indicators') %}
+                            <div class="mt-3 text-xs text-slate-600">
+                                Indicators: {{ data.get('indicators')|join(', ')|truncate(80) }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Detailed Thematic Performance Table ONLY -->
+                    <div class="mt-8">
+                        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
+                            <p class="text-sm font-semibold text-slate-900">Detailed Thematic Performance</p>
+                            <p class="text-xs text-slate-500 mt-1">Dataset scores from DVV Template</p>
+                        </div>
+                        <div class="overflow-x-auto border border-slate-200 rounded-b-xl">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-slate-50 text-slate-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left font-medium">#</th>
+                                    <th class="px-6 py-3 text-left font-medium">Dataset</th>
+                                    <th class="px-6 py-3 text-left font-medium">Category</th>
+                                    <th class="px-6 py-3 text-right font-medium">Score (%)</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200">
+                                {% for area in thematic_data %}
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-3 text-slate-500">{{ loop.index }}</td>
+                                        <td class="px-6 py-3">
+                                            <div class="font-medium text-slate-900">{{ area.name }}</div>
+                                            {% if area.description %}
+                                            <div class="text-xs text-slate-500 mt-1 truncate max-w-xs">{{ area.description }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-3">
+                                            <span class="px-3 py-1 text-xs rounded-full 
+                                                {% if area.group == 'HTS' %}bg-blue-100 text-blue-800 border border-blue-200
+                                                {% elif area.group == 'PMTCT' %}bg-purple-100 text-purple-800 border border-purple-200
+                                                {% elif area.group == 'TB' %}bg-amber-100 text-amber-800 border border-amber-200
+                                                {% elif area.group == 'ART' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                                                {% elif area.group == 'PrEP' %}bg-cyan-100 text-cyan-800 border border-cyan-200
+                                                {% elif area.group == 'POST_RESP' %}bg-pink-100 text-pink-800 border border-pink-200
+                                                {% elif area.group == 'EID' %}bg-indigo-100 text-indigo-800 border border-indigo-200
+                                                {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
+                                                {{ area.group }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-3 text-right">
+                                            <div class="flex items-center justify-end space-x-3">
+                                                <div class="w-24 bg-slate-100 rounded-full h-2">
+                                                    <div class="h-2 rounded-full 
+                                                        {% if area.overall_pct >= 90 %}bg-emerald-500
+                                                        {% elif area.overall_pct >= 75 %}bg-blue-500
+                                                        {% elif area.overall_pct >= 50 %}bg-yellow-500
+                                                        {% else %}bg-red-500{% endif %}" 
+                                                        style="width: {{ area.overall_pct }}%">
+                                                    </div>
+                                                </div>
+                                                <span class="font-bold text-lg min-w-[60px]
+                                                    {% if area.overall_pct >= 90 %}text-emerald-600
+                                                    {% elif area.overall_pct >= 75 %}text-blue-600
+                                                    {% elif area.overall_pct >= 50 %}text-yellow-600
+                                                    {% else %}text-red-600{% endif %}">
+                                                    {{ "%.1f"|format(area.overall_pct) }}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <tfoot class="bg-slate-50">
+                                <tr>
+                                    <td colspan="3" class="px-6 py-3 font-semibold text-slate-900 text-right">Overall Average:</td>
+                                    <td class="px-6 py-3 text-right font-bold text-xl text-emerald-600">
+                                        {% set total_score = thematic_data|sum(attribute='overall_pct') %}
+                                        {% set avg_score = total_score / thematic_data|length if thematic_data|length > 0 else 0 %}
+                                        {{ "%.1f"|format(avg_score) }}%
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-pie text-slate-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-900 mb-2">No Thematic Data Available</h3>
+                        <p class="text-slate-600 max-w-md mx-auto mb-4">
+                            No thematic breakdown was detected for this facility in the uploaded DVV Template.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- BREAKDOWNS SECTION -->
+        <section id="section-breakdowns" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-6">Column Breakdowns</h2>
+                
+                <!-- Client Level Breakdown -->
+                {% if facility.breakdowns and facility.breakdowns.client_level %}
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                        <i class="fas fa-user-circle text-blue-600 mr-2"></i>
+                        Client Level Breakdown ({{ facility.breakdowns.client_level|length }} columns)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-blue-50 text-blue-900">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium">Column</th>
+                                <th class="px-4 py-3 text-right font-medium">TRUE Count</th>
+                                <th class="px-4 py-3 text-right font-medium">Total Rows</th>
+                                <th class="px-4 py-3 text-right font-medium">Percentage</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                            {% for item in facility.breakdowns.client_level %}
+                                <tr class="hover:bg-blue-50/30">
+                                    <td class="px-4 py-3 font-medium text-slate-900">{{ item.column }}</td>
+                                    <td class="px-4 py-3 text-right text-slate-700">{{ item.true_count }}</td>
+                                    <td class="px-4 py-3 text-right text-slate-600">{{ item.total_rows }}</td>
+                                    <td class="px-4 py-3 text-right font-semibold 
+                                        {% if item.percent >= 90 %}text-emerald-600
+                                        {% elif item.percent >= 70 %}text-blue-600
+                                        {% elif item.percent >= 50 %}text-yellow-600
+                                        {% else %}text-red-600{% endif %}">
+                                        {{ "%.2f"|format(item.percent) }}%
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-slate-50">
+                            <tr>
+                                <td class="px-4 py-3 font-semibold text-slate-900">Average</td>
+                                <td colspan="2" class="px-4 py-3 text-right text-slate-600">
+                                    {{ facility.Client_Level }}%
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold text-emerald-600">
+                                    {{ "%.2f"|format(facility.Client_Level) }}%
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- VL Unsuppressed Breakdown -->
+                {% if facility.breakdowns and facility.breakdowns.vl_unsuppressed %}
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                        <i class="fas fa-vial text-purple-600 mr-2"></i>
+                        VL Unsuppressed Breakdown ({{ facility.breakdowns.vl_unsuppressed|length }} columns)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-purple-50 text-purple-900">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium">Column</th>
+                                <th class="px-4 py-3 text-right font-medium">TRUE Count</th>
+                                <th class="px-4 py-3 text-right font-medium">Total Rows</th>
+                                <th class="px-4 py-3 text-right font-medium">Percentage</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                            {% for item in facility.breakdowns.vl_unsuppressed %}
+                                <tr class="hover:bg-purple-50/30">
+                                    <td class="px-4 py-3 font-medium text-slate-900">{{ item.column }}</td>
+                                    <td class="px-4 py-3 text-right text-slate-700">{{ item.true_count }}</td>
+                                    <td class="px-4 py-3 text-right text-slate-600">{{ item.total_rows }}</td>
+                                    <td class="px-4 py-3 text-right font-semibold 
+                                        {% if item.percent >= 90 %}text-emerald-600
+                                        {% elif item.percent >= 70 %}text-blue-600
+                                        {% elif item.percent >= 50 %}text-yellow-600
+                                        {% else %}text-red-600{% endif %}">
+                                        {{ "%.2f"|format(item.percent) }}%
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-slate-50">
+                            <tr>
+                                <td class="px-4 py-3 font-semibold text-slate-900">Average</td>
+                                <td colspan="2" class="px-4 py-3 text-right text-slate-600">
+                                    {{ facility.VL_Unsuppressed }}%
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold text-emerald-600">
+                                    {{ "%.2f"|format(facility.VL_Unsuppressed) }}%
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-table text-slate-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-2">No Breakdown Data Available</h3>
+                    <p class="text-slate-600 max-w-md mx-auto">
+                        Column breakdown data is not available for this facility.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- FILES SECTION -->
+        <section id="section-files" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-900 mb-6">File Information</h2>
+                
+                {% if facility.files %}
+                <div class="space-y-6">
+                    {% for file_type, filename in facility.files.items() %}
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-excel 
+                                    {% if file_type == 'dvv' %}text-green-600
+                                    {% elif file_type == 'client_level' %}text-blue-600
+                                    {% else %}text-purple-600{% endif %} 
+                                    text-xl mr-3"></i>
+                                <div>
+                                    <h3 class="font-semibold text-slate-900 capitalize">{{ file_type.replace('_', ' ') }}</h3>
+                                    <p class="text-sm text-slate-600">{{ filename }}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-medium">
+                                {{ file_type|upper }}
+                            </span>
+                        </div>
+                        
+                        {% if facility.metadata %}
+                        <div class="mt-3 pt-3 border-t border-slate-200">
+                            <h4 class="text-sm font-medium text-slate-700 mb-2">File Details:</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                <div>
+                                    <p class="text-slate-500">Size</p>
+                                    <p class="font-medium">{{ facility.metadata.size_mb if facility.metadata.size_mb else 'N/A' }} MB</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500">Modified</p>
+                                    <p class="font-medium">
+                                        {% if facility.metadata.modified %}
+                                            {{ facility.metadata.modified|string|truncate(10, true, '') }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500">Sheets</p>
+                                    <p class="font-medium">
+                                        {% if facility.metadata.sheets %}
+                                            {{ facility.metadata.sheets|length }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500">Has Formulas</p>
+                                    <p class="font-medium">
+                                        {% if facility.metadata.has_formulas %}
+                                            <span class="text-yellow-600">Yes</span>
+                                        {% else %}
+                                            No
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-folder-open text-slate-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-2">No File Information</h3>
+                    <p class="text-slate-600 max-w-md mx-auto">
+                        File details are not available for this facility.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Add Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Initialize pie charts for KPI categories
+    function initializePieCharts() {
+        const kpiData = {{ facility.get('thematic_kpis', {})|tojson|safe }};
+        
+        for (const [category, data] of Object.entries(kpiData)) {
+            const canvasId = `pie-${category.toLowerCase()}`;
+            const canvas = document.getElementById(canvasId);
+            
+            if (!canvas || !data.average) continue;
+            
+            const score = data.average;
+            const remaining = 100 - score;
+            
+            // Define colors based on score
+            let color;
+            if (score >= 90) color = '#10b981'; // emerald
+            else if (score >= 75) color = '#3b82f6'; // blue
+            else if (score >= 50) color = '#f59e0b'; // yellow
+            else color = '#ef4444'; // red
+            
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [score, remaining],
+                        backgroundColor: [color, '#e5e7eb'],
+                        borderWidth: 0,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    responsive: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        }
+    }
+    
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePieCharts();
+        
+        // Re-initialize charts when thematic tab is clicked
+        document.getElementById('tab-thematic').addEventListener('click', function() {
+            setTimeout(initializePieCharts, 100);
+        });
+    });
+    
+    // --- Tab switching ---
+    const tabs = {
+        'summary': document.getElementById('tab-summary'),
+        'thematic': document.getElementById('tab-thematic'),
+        'breakdowns': document.getElementById('tab-breakdowns'),
+        'files': document.getElementById('tab-files')
+    };
+    
+    const sections = {
+        'summary': document.getElementById('section-summary'),
+        'thematic': document.getElementById('section-thematic'),
+        'breakdowns': document.getElementById('section-breakdowns'),
+        'files': document.getElementById('section-files')
+    };
+
+    function activateTab(tabName) {
+        // Update all tabs
+        Object.keys(tabs).forEach(key => {
+            if (key === tabName) {
+                tabs[key].classList.add('bg-emerald-500', 'text-white');
+                tabs[key].classList.remove('text-slate-700');
+                sections[key].classList.remove('hidden');
+            } else {
+                tabs[key].classList.remove('bg-emerald-500', 'text-white');
+                tabs[key].classList.add('text-slate-700');
+                sections[key].classList.add('hidden');
+            }
+        });
+        
+        // Re-initialize charts if switching to thematic tab
+        if (tabName === 'thematic') {
+            setTimeout(initializePieCharts, 100);
+        }
+    }
+
+    // Add click listeners to all tabs
+    Object.keys(tabs).forEach(tabName => {
+        tabs[tabName].addEventListener('click', () => activateTab(tabName));
+    });
+
+    // Default: summary tab active
+    activateTab('summary');
+</script>
+
+<style>
+    .chart-container {
+        position: relative;
+        height: 256px;
+        width: 100%;
+    }
+    .chart-container canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+    }
+</style>
+{% endblock %}

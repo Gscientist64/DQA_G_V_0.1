@@ -1,0 +1,305 @@
+<!-- app/templates/dvv_thematic.html -->
+{% extends "base.html" %}
+
+{% block title %}DVV Thematic Analysis{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">DVV Thematic Area Analysis</h1>
+                    <p class="text-slate-600 mt-2">Detailed analysis of thematic areas from DVV templates</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('routes.performance') }}"
+                       class="inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-100 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Performance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-6 space-y-2">
+              {% for category, message in messages %}
+                {% if category == 'warning' %}
+                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ message }}
+                </div>
+                {% elif category == 'success' %}
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    {{ message }}
+                </div>
+                {% else %}
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ message }}
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Upload Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Single DVV Analysis -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-file-excel text-emerald-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Analyze Single DVV File</h2>
+                        <p class="text-slate-600 text-sm">Upload one DVV template for detailed thematic analysis</p>
+                    </div>
+                </div>
+                
+                <form method="post" action="{{ url_for('routes.upload_dvv_thematic') }}" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Select DVV Template File</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-emerald-400 transition-colors">
+                            <div class="space-y-1 text-center">
+                                <i class="fas fa-cloud-upload-alt text-slate-400 text-3xl mx-auto"></i>
+                                <div class="flex text-sm text-slate-600">
+                                    <label for="dvv_file" class="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none">
+                                        <span>Upload a file</span>
+                                        <input id="dvv_file" name="dvv_file" type="file" class="sr-only" accept=".xls,.xlsx" required>
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-slate-500">Excel files only (.xls, .xlsx)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="quarter" class="block text-sm font-medium text-slate-700 mb-2">Quarter</label>
+                        <select id="quarter" name="quarter" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="Q1">Q1</option>
+                            <option value="Q2">Q2</option>
+                            <option value="Q3">Q3</option>
+                            <option value="Q4" selected>Q4</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 px-4 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition flex items-center justify-center">
+                        <i class="fas fa-chart-pie mr-2"></i>
+                        Analyze DVV File
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-6 border-t border-slate-200">
+                    <h3 class="text-sm font-semibold text-slate-900 mb-2">What will be analyzed:</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-emerald-500 mt-0.5 mr-2"></i>
+                            All thematic areas (HTS, PMTCT, TB, TX, etc.)
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-emerald-500 mt-0.5 mr-2"></i>
+                            Component scores (Availability, Integrity, Consistency, Validity)
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-emerald-500 mt-0.5 mr-2"></i>
+                            Performance ratings for each indicator
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-emerald-500 mt-0.5 mr-2"></i>
+                            Category-wise performance summary
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Multiple DVV Comparison -->
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-layer-group text-purple-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Compare Multiple DVV Files</h2>
+                        <p class="text-slate-600 text-sm">Upload multiple DVV templates to compare performance</p>
+                    </div>
+                </div>
+                
+                <form method="post" action="{{ url_for('routes.compare_dvv_thematic') }}" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Select DVV Template Files</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-purple-400 transition-colors">
+                            <div class="space-y-1 text-center">
+                                <i class="fas fa-folder-open text-slate-400 text-3xl mx-auto"></i>
+                                <div class="flex text-sm text-slate-600">
+                                    <label for="dvv_files" class="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none">
+                                        <span>Upload files</span>
+                                        <input id="dvv_files" name="dvv_files" type="file" class="sr-only" accept=".xls,.xlsx" multiple required>
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-slate-500">Select multiple Excel files (.xls, .xlsx)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 px-4 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition flex items-center justify-center">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Compare DVV Files
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-6 border-t border-slate-200">
+                    <h3 class="text-sm font-semibold text-slate-900 mb-2">Comparison features:</h3>
+                    <ul class="text-sm text-slate-600 space-y-1">
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-bar text-purple-500 mt-0.5 mr-2"></i>
+                            Side-by-side performance comparison
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-trophy text-purple-500 mt-0.5 mr-2"></i>
+                            Identify best performing facilities
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-purple-500 mt-0.5 mr-2"></i>
+                            Highlight areas needing improvement
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-download text-purple-500 mt-0.5 mr-2"></i>
+                            Export comparison results
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Section -->
+        <div class="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-900 mb-4">About DVV Thematic Analysis</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-4 bg-blue-50 rounded-xl">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-clipboard-check text-blue-600"></i>
+                        </div>
+                        <h3 class="font-semibold text-blue-800">What is DVV?</h3>
+                    </div>
+                    <p class="text-sm text-blue-700">
+                        Data Validation and Verification (DVV) is a tool used to assess the quality of healthcare data by examining accuracy, completeness, and consistency across different thematic areas.
+                    </p>
+                </div>
+
+                <div class="p-4 bg-emerald-50 rounded-xl">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-pie text-emerald-600"></i>
+                        </div>
+                        <h3 class="font-semibold text-emerald-800">Thematic Areas</h3>
+                    </div>
+                    <p class="text-sm text-emerald-700">
+                        The system analyzes indicators across key thematic areas: HTS (Testing), PMTCT (Mother-to-Child), TB Services, HIV Treatment (TX), PrEP, and more.
+                    </p>
+                </div>
+
+                <div class="p-4 bg-purple-50 rounded-xl">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-cogs text-purple-600"></i>
+                        </div>
+                        <h3 class="font-semibold text-purple-800">Components Assessed</h3>
+                    </div>
+                    <p class="text-sm text-purple-700">
+                        Each indicator is scored across four components: Availability, Integrity, Consistency, and Validity to provide a comprehensive quality assessment.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="mt-8 bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-900 mb-4">How to Use</h2>
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3 mt-0.5">
+                        <span class="text-emerald-600 font-semibold">1</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-slate-900">Upload DVV Template</h3>
+                        <p class="text-sm text-slate-600">Select a DVV template file from your facility. Ensure it follows the standard DVV template format.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-0.5">
+                        <span class="text-blue-600 font-semibold">2</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-slate-900">Select Analysis Type</h3>
+                        <p class="text-sm text-slate-600">Choose between single file analysis or multiple file comparison based on your needs.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3 mt-0.5">
+                        <span class="text-purple-600 font-semibold">3</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-slate-900">Review Results</h3>
+                        <p class="text-sm text-slate-600">Analyze the detailed breakdown of thematic areas, component scores, and performance ratings.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3 mt-0.5">
+                        <span class="text-amber-600 font-semibold">4</span>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-slate-900">Export and Take Action</h3>
+                        <p class="text-sm text-slate-600">Download results for reporting and use insights to improve data quality at your facility.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle file upload display
+    document.addEventListener('DOMContentLoaded', function() {
+        const singleFileInput = document.getElementById('dvv_file');
+        const multiFileInput = document.getElementById('dvv_files');
+        
+        if (singleFileInput) {
+            singleFileInput.addEventListener('change', function(e) {
+                const fileName = e.target.files[0]?.name || 'No file chosen';
+                const label = singleFileInput.previousElementSibling;
+                if (label && label.querySelector('span')) {
+                    label.querySelector('span').textContent = fileName;
+                }
+            });
+        }
+        
+        if (multiFileInput) {
+            multiFileInput.addEventListener('change', function(e) {
+                const fileCount = e.target.files.length;
+                const label = multiFileInput.previousElementSibling;
+                if (label && label.querySelector('span')) {
+                    label.querySelector('span').textContent = fileCount > 0 ? 
+                        `${fileCount} file${fileCount > 1 ? 's' : ''} selected` : 
+                        'Upload files';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

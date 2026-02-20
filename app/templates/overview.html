@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}DQA Overview{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">DQA Overview</h1>
+                    <p class="text-slate-600 mt-2">Comprehensive Data Quality Assurance Platform</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-slate-500">Current Cycle</p>
+                        <p class="font-semibold text-emerald-600">Q1 2026</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Total Facilities</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">{{ facilities|length if facilities else 0 }}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-hospital text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Average DQA Score</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">
+                            {% if facilities %}
+                                {{ "%.1f"|format((facilities|map(attribute='Score')|sum / facilities|length)) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-emerald-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Top Performer</p>
+                        <p class="text-lg font-bold text-slate-900 mt-1">
+                            {% if facilities %}
+                                {{ (facilities|sort(attribute='Score', reverse=true)|first).Facility[:15] }}...
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                        <i class="fas fa-trophy text-amber-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Data Completeness</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">98.2%</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column -->
+            <div class="space-y-8">
+                <!-- What is DQA -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4">What is Data Quality Assurance?</h2>
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 leading-relaxed">
+                            Data Quality Assurance (DQA) is a systematic process to ensure the accuracy, 
+                            completeness, and reliability of healthcare data. It involves regular assessments 
+                            and validation of data collection, reporting, and management processes.
+                        </p>
+                        <ul class="text-slate-700 mt-4 space-y-2">
+                            <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i>Ensures data accuracy and reliability</li>
+                            <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i>Identifies and corrects data errors</li>
+                            <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i>Improves decision-making processes</li>
+                            <li><i class="fas fa-check-circle text-emerald-500 mr-2"></i>Enhances program performance tracking</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Key Components -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4">Key DQA Components</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-database text-blue-600 text-sm"></i>
+                                </div>
+                                <h3 class="font-semibold text-slate-900">Data Verification</h3>
+                            </div>
+                            <p class="text-sm text-slate-600">Cross-checking data against source documents</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-check-double text-emerald-600 text-sm"></i>
+                                </div>
+                                <h3 class="font-semibold text-slate-900">Validation</h3>
+                            </div>
+                            <p class="text-sm text-slate-600">Ensuring data meets quality standards</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-chart-bar text-amber-600 text-sm"></i>
+                                </div>
+                                <h3 class="font-semibold text-slate-900">Analysis</h3>
+                            </div>
+                            <p class="text-sm text-slate-600">Identifying trends and patterns</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div class="flex items-center mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-bullseye text-purple-600 text-sm"></i>
+                                </div>
+                                <h3 class="font-semibold text-slate-900">Improvement</h3>
+                            </div>
+                            <p class="text-sm text-slate-600">Implementing corrective actions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-8">
+                <!-- Process Flow -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-900 mb-6">DQA Process Flow</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold mr-4">1</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-slate-900">Data Collection</h3>
+                                <p class="text-sm text-slate-600">Gather facility performance data</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-slate-400"></i>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold mr-4">2</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-slate-900">Upload & Analysis</h3>
+                                <p class="text-sm text-slate-600">Process Excel files in the system</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-slate-400"></i>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold mr-4">3</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-slate-900">Performance Review</h3>
+                                <p class="text-sm text-slate-600">Analyze facility performance metrics</p>
+                            </div>
+                            <i class="fas fa-arrow-right text-slate-400"></i>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold mr-4">4</div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-slate-900">Results & Reporting</h3>
+                                <p class="text-sm text-slate-600">Generate comprehensive reports</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-900 mb-4">Quick Actions</h2>
+                    <div class="grid grid-cols-1 gap-3">
+                        <a href="{{ url_for('routes.analysis') }}" 
+                           class="flex items-center p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition">
+                            <i class="fas fa-upload text-blue-600 text-xl mr-4"></i>
+                            <div>
+                                <h3 class="font-semibold text-slate-900">Upload New Data</h3>
+                                <p class="text-sm text-slate-600">Process facility DQA files</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('routes.performance') }}" 
+                           class="flex items-center p-4 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition">
+                            <i class="fas fa-chart-bar text-emerald-600 text-xl mr-4"></i>
+                            <div>
+                                <h3 class="font-semibold text-slate-900">View Performance</h3>
+                                <p class="text-sm text-slate-600">Analyze facility metrics</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('routes.results') }}" 
+                           class="flex items-center p-4 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 transition">
+                            <i class="fas fa-trophy text-amber-600 text-xl mr-4"></i>
+                            <div>
+                                <h3 class="font-semibold text-slate-900">See Results</h3>
+                                <p class="text-sm text-slate-600">View rankings and winners</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

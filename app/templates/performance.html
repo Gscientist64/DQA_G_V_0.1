@@ -1,0 +1,1748 @@
+<!-- app/templates/performance.html -->
+{% extends "base.html" %}
+
+{% block title %}DQA Performance Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <!-- Header - Simplified -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">DQA Performance Dashboard</h1>
+                    <p class="text-slate-600 mt-2">Comprehensive facility performance analysis and metrics</p>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Final DQA Score = (DVV + Client Level + VL Unsuppressed) ÷ 3
+                    </p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Statistics -->
+                    <div class="text-right hidden lg:block">
+                        <p class="text-sm text-slate-500">Total Facilities</p>
+                        <p class="font-semibold text-emerald-600">{{ all_facilities|length }}</p>
+                    </div>
+                    <!-- Quarter Filter -->
+                    <form method="get" class="flex items-center space-x-2">
+                        <span class="text-sm text-slate-600">Quarter:</span>
+                        <select
+                            name="quarter"
+                            onchange="this.form.submit()"
+                            class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                            <option value="">All Quarters</option>
+                            {% for q in quarters %}
+                                <option value="{{ q }}" {% if selected_quarter == q %}selected{% endif %}>{{ q }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-6 space-y-2">
+              {% for category, message in messages %}
+                {% if category == 'warning' %}
+                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ message }}
+                </div>
+                {% elif category == 'success' %}
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    {{ message }}
+                </div>
+                {% else %}
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ message }}
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Performance Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Facilities Analysed</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">{{ all_facilities|length }}</p>
+                        <p class="text-xs text-slate-500 mt-1">
+                            {% if selected_quarter %}
+                                Quarter: {{ selected_quarter }}
+                            {% else %}
+                                All quarters
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-hospital text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Average Final DQA</p>
+                        <p class="text-2xl font-bold text-emerald-600 mt-1">
+                            {% if all_facilities|length > 0 %}
+                                {% set total_score = all_facilities|map(attribute='Score')|sum %}
+                                {{ "%.1f"|format(total_score / all_facilities|length) }}%
+                            {% else %}
+                                0.0%
+                            {% endif %}
+                        </p>
+                        {% if all_facilities|length > 0 %}
+                        <div class="mt-2 w-full bg-slate-200 rounded-full h-2">
+                            <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ (all_facilities|map(attribute='Score')|sum / all_facilities|length) }}%"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-emerald-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Average DVV Score</p>
+                        <p class="text-2xl font-bold text-blue-600 mt-1">
+                            {% if all_facilities|length > 0 %}
+                                {% set total_dvv = all_facilities|map(attribute='DVV')|sum %}
+                                {{ "%.1f"|format(total_dvv / all_facilities|length) }}%
+                            {% else %}
+                                0.0%
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1">Data Validation Score</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-clipboard-check text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-600">Success Rate</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">
+                            {% if all_facilities|length > 0 %}
+                                100%
+                            {% else %}
+                                100%
+                            {% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1">
+                            All facilities processed
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Analytics Section -->
+        {% if all_facilities and all_facilities|length > 0 %}
+        <div class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200 mb-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6">Performance Analytics</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Thematic KPI Averages - Clickable Boxes -->
+                <div class="lg:col-span-2">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-slate-900">Thematic KPI Averages</h3>
+                        <p class="text-sm text-slate-600">
+                            <i class="fas fa-mouse-pointer mr-1"></i>
+                            Click any box for detailed analysis
+                        </p>
+                    </div>
+                    
+                    <!-- Thematic KPI Boxes Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="thematicKPIBoxes">
+                        <!-- ART Box -->
+                        <div class="thematic-box bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1" 
+                             data-category="ART" 
+                             data-indicators="7"
+                             onclick="openThematicAnalysis('ART')">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-emerald-900 text-lg">ART</h4>
+                                    <p class="text-emerald-700 text-sm">7 indicators</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                                    <i class="fas fa-pills text-emerald-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-emerald-900 mb-1" id="art-score">--%</div>
+                                <div class="text-xs text-emerald-700">Average Score</div>
+                            </div>
+                            <div class="mt-4 flex items-center text-xs text-emerald-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Click for facility breakdown</span>
+                            </div>
+                        </div>
+
+                        <!-- HTS Box -->
+                        <div class="thematic-box bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                             data-category="HTS"
+                             data-indicators="3"
+                             onclick="openThematicAnalysis('HTS')">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-blue-900 text-lg">HTS</h4>
+                                    <p class="text-blue-700 text-sm">3 indicators</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                    <i class="fas fa-vial text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-900 mb-1" id="hts-score">--%</div>
+                                <div class="text-xs text-blue-700">Average Score</div>
+                            </div>
+                            <div class="mt-4 flex items-center text-xs text-blue-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Click for facility breakdown</span>
+                            </div>
+                        </div>
+
+                        <!-- PrEP Box -->
+                        <div class="thematic-box bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                             data-category="PrEP"
+                             data-indicators="3"
+                             onclick="openThematicAnalysis('PrEP')">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-purple-900 text-lg">PrEP</h4>
+                                    <p class="text-purple-700 text-sm">3 indicators</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-purple-900 mb-1" id="prep-score">--%</div>
+                                <div class="text-xs text-purple-700">Average Score</div>
+                            </div>
+                            <div class="mt-4 flex items-center text-xs text-purple-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Click for facility breakdown</span>
+                            </div>
+                        </div>
+
+                        <!-- PMTCT Box -->
+                        <div class="thematic-box bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-200 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                             data-category="PMTCT"
+                             data-indicators="8"
+                             onclick="openThematicAnalysis('PMTCT')">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-pink-900 text-lg">PMTCT</h4>
+                                    <p class="text-pink-700 text-sm">8 indicators</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center">
+                                    <i class="fas fa-baby text-pink-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-pink-900 mb-1" id="pmtct-score">--%</div>
+                                <div class="text-xs text-pink-700">Average Score</div>
+                            </div>
+                            <div class="mt-4 flex items-center text-xs text-pink-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Click for facility breakdown</span>
+                            </div>
+                        </div>
+
+                        <!-- TB Box -->
+                        <div class="thematic-box bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                             data-category="TB"
+                             data-indicators="3"
+                             onclick="openThematicAnalysis('TB')">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-amber-900 text-lg">TB</h4>
+                                    <p class="text-amber-700 text-sm">3 indicators</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                    <i class="fas fa-lungs text-amber-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-amber-900 mb-1" id="tb-score">--%</div>
+                                <div class="text-xs text-amber-700">Average Score</div>
+                            </div>
+                            <div class="mt-4 flex items-center text-xs text-amber-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Click for facility breakdown</span>
+                            </div>
+                        </div>
+
+                        <!-- POST_RESP Box -->
+                        <div class="thematic-box bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-200 rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                             data-category="POST_RESP"
+                             data-indicators="2"
+                             onclick="openThematicAnalysis('POST_RESP')">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-bold text-indigo-900 text-lg">POST RESP</h4>
+                                    <p class="text-indigo-700 text-sm">2 indicators</p>
+                                </div>
+                                <div class="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                                    <i class="fas fa-headset text-indigo-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-indigo-900 mb-1" id="postresp-score">--%</div>
+                                <div class="text-xs text-indigo-700">Average Score</div>
+                            </div>
+                            <div class="mt-4 flex items-center text-xs text-indigo-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <span>Click for facility breakdown</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Component Scores Comparison (FIXED - Smaller bars) -->
+                <div class="lg:col-span-2">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Component Scores Comparison</h3>
+                    <div class="chart-container relative" style="height: 350px;">
+                        <canvas id="componentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Facilities Grid -->
+        {% if all_facilities and all_facilities|length > 0 %}
+        <div class="mb-12">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">All Facilities Performance ({{ all_facilities|length }})</h2>
+                    <p class="text-slate-600 text-sm">
+                        <i class="fas fa-hospital mr-1"></i>
+                        Click on any facility to view detailed analysis
+                    </p>
+                </div>
+                <div class="text-sm text-slate-600">
+                    {% if selected_quarter %}Filtered by: {{ selected_quarter }}{% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {% for facility in all_facilities|sort(attribute='Score', reverse=false) %}
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 hover:shadow-xl transition-shadow group">
+                    <!-- Facility Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2 mb-2">
+                                {% if facility.quarter %}
+                                <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                    {{ facility.quarter }}
+                                </span>
+                                {% endif %}
+                                {% if facility.warnings and facility.warnings|length > 0 %}
+                                <span class="text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full flex items-center">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    {{ facility.warnings|length }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <h3 class="font-bold text-slate-900 text-lg truncate group-hover:text-emerald-600 transition-colors">{{ facility.Facility }}</h3>
+                            {% if facility.rating %}
+                            <div class="mt-1">
+                                <span class="text-xs px-2 py-1 rounded-full 
+                                    {% if facility.rating == 'Excellent' %}bg-emerald-100 text-emerald-800
+                                    {% elif facility.rating == 'Good' %}bg-blue-100 text-blue-800
+                                    {% elif facility.rating == 'Poor' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ facility.rating }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Score Badge -->
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-full 
+                                {% if facility.Score >= 90 %}bg-gradient-to-br from-emerald-400 to-cyan-400
+                                {% elif facility.Score >= 80 %}bg-gradient-to-br from-blue-400 to-cyan-400
+                                {% elif facility.Score >= 70 %}bg-gradient-to-br from-yellow-400 to-amber-400
+                                {% else %}bg-gradient-to-br from-red-400 to-orange-400{% endif %} 
+                                flex items-center justify-center shadow-lg">
+                                <span class="text-white font-bold text-sm">{{ "%.1f"|format(facility.Score) }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics (3-component logic) -->
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="text-center p-3 bg-slate-50 rounded-lg hover:bg-blue-50 transition-colors">
+                            <p class="text-xs text-slate-600 mb-1">DVV</p>
+                            <p class="font-bold text-emerald-600">{{ "%.1f"|format(facility.DVV) }}%</p>
+                        </div>
+                        <div class="text-center p-3 bg-slate-50 rounded-lg hover:bg-cyan-50 transition-colors">
+                            <p class="text-xs text-slate-600 mb-1">Client Level</p>
+                            <p class="font-bold text-cyan-600">
+                                {% if facility.Client_Level is not none %}
+                                    {{ "%.1f"|format(facility.Client_Level) }}%
+                                {% else %}
+                                    <span class="text-slate-400 text-xs">N/A</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="text-center p-3 bg-slate-50 rounded-lg hover:bg-purple-50 transition-colors">
+                            <p class="text-xs text-slate-600 mb-1">VL Unsuppressed</p>
+                            <p class="font-bold text-purple-600">
+                                {% if facility.VL_Unsuppressed is not none %}
+                                    {{ "%.1f"|format(facility.VL_Unsuppressed) }}%
+                                {% else %}
+                                    <span class="text-slate-400 text-xs">N/A</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Score Breakdown -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between text-xs text-slate-600 mb-1">
+                            <span>Final Score Composition:</span>
+                            <span>{{ "%.1f"|format(facility.Score) }}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2 flex overflow-hidden">
+                            <div class="bg-emerald-500 h-2" style="width: {{ facility.DVV }}%"></div>
+                            <div class="bg-cyan-500 h-2" style="width: {{ facility.Client_Level if facility.Client_Level else 0 }}%"></div>
+                            <div class="bg-purple-500 h-2" style="width: {{ facility.VL_Unsuppressed if facility.VL_Unsuppressed else 0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('routes.facility_detail', facility_id=facility.id) }}"
+                           class="flex-1 text-center py-2 px-3 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition flex items-center justify-center">
+                            <i class="fas fa-chart-bar mr-2"></i>
+                            View Details
+                        </a>
+                        <form action="{{ url_for('routes.delete_facility', facility_id=facility.id, quarter=selected_quarter) }}"
+                              method="post"
+                              class="flex-1"
+                              onsubmit="return confirm('Are you sure you want to delete this facility analysis? This action cannot be undone.');">
+                            <button type="submit" class="w-full py-2 px-3 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition flex items-center justify-center">
+                                <i class="fas fa-trash mr-2"></i>
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="w-24 h-24 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-chart-bar text-slate-400 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-900 mb-2">No Performance Data Available</h3>
+            <p class="text-slate-600 mb-6 max-w-md mx-auto">
+                {% if selected_quarter %}
+                    No facilities found for quarter {{ selected_quarter }}. Upload files to generate performance reports.
+                {% else %}
+                    Upload the three required files (DVV Template, Client Level, VL Unsuppressed) to generate performance reports.
+                {% endif %}
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="{{ url_for('routes.analysis') }}"
+                   class="inline-flex items-center px-6 py-3 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition">
+                    <i class="fas fa-upload mr-2"></i>
+                    Upload Single Facility
+                </a>
+                <a href="{{ url_for('routes.batch_upload') }}"
+                   class="inline-flex items-center px-6 py-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-semibold hover:bg-blue-100 transition">
+                    <i class="fas fa-layer-group mr-2"></i>
+                    Batch Upload
+                </a>
+                <a href="{{ url_for('routes.dvv_thematic') }}"
+                   class="inline-flex items-center px-6 py-3 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl font-semibold hover:bg-purple-100 transition">
+                    <i class="fas fa-chart-pie mr-2"></i>
+                    DVV Thematic Analysis
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Footer Info -->
+        {% if all_facilities|length > 0 %}
+        <div class="text-center text-sm text-slate-500 pt-6 border-t border-slate-200">
+            <p>
+                Data last updated: 
+                {% if stats and stats.last_updated %}
+                {{ stats.last_updated|int if stats.last_updated else 'N/A' }}
+                {% else %}
+                    N/A
+                {% endif %}
+                • 
+                <a href="{{ url_for('routes.export_excel') }}" class="text-emerald-600 hover:text-emerald-700 font-medium">
+                    <i class="fas fa-download mr-1"></i>Export Performance Data
+                </a>
+                • 
+                <a href="{{ url_for('routes.results') }}" class="text-amber-600 hover:text-amber-700 font-medium">
+                    <i class="fas fa-trophy mr-1"></i>View Results & Rankings
+                </a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Thematic Analysis Modal - IMPROVED VERSION -->
+<div id="thematicAnalysisModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+        <!-- Modal Header -->
+        <div class="sticky top-0 bg-white border-b border-slate-200 px-8 py-6 z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center" id="modalCategoryIcon">
+                        <i class="fas fa-chart-pie text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900" id="modalCategoryTitle">Thematic Analysis</h3>
+                        <p class="text-slate-600" id="modalCategorySubtitle">Loading...</p>
+                    </div>
+                </div>
+                <button onclick="closeThematicAnalysis()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="overflow-y-auto p-8" style="max-height: calc(90vh - 120px)">
+            <!-- Loading State -->
+            <div id="modalLoading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500 mb-4"></div>
+                <p class="text-slate-600">Loading thematic analysis data...</p>
+            </div>
+
+            <!-- Content (hidden initially) -->
+            <div id="modalContent" class="hidden">
+                <!-- Overall Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6">
+                        <p class="text-sm font-medium text-slate-600 mb-2">Average Score</p>
+                        <p class="text-4xl font-bold text-slate-900" id="modalAverageScore">--%</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6">
+                        <p class="text-sm font-medium text-slate-600 mb-2">Indicators Analysed</p>
+                        <p class="text-4xl font-bold text-slate-900" id="modalIndicatorsCount">--</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-6">
+                        <p class="text-sm font-medium text-slate-600 mb-2">Facilities Contributing</p>
+                        <p class="text-4xl font-bold text-slate-900" id="modalFacilitiesCount">--</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis Tabs -->
+                <div class="mb-8">
+                    <div class="flex space-x-1 border-b border-slate-200">
+                        <button class="tab-btn px-6 py-3 text-sm font-medium rounded-t-lg transition-all active" data-tab="facility-contributions">
+                            <i class="fas fa-hospital mr-2"></i>Facility Contributions
+                        </button>
+                        <button class="tab-btn px-6 py-3 text-sm font-medium rounded-t-lg transition-all" data-tab="indicator-breakdown">
+                            <i class="fas fa-chart-bar mr-2"></i>Indicator Breakdown
+                        </button>
+                        <button class="tab-btn px-6 py-3 text-sm font-medium rounded-t-lg transition-all" data-tab="performance-distribution">
+                            <i class="fas fa-chart-pie mr-2"></i>Performance Distribution
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="py-6">
+                        <!-- Facility Contributions -->
+                        <div id="facility-contributions" class="tab-content">
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-slate-900 mb-4">Top Performing Facilities</h4>
+                                <div class="bg-slate-50 rounded-xl p-6">
+                                    <div class="chart-container relative" style="height: 450px;">
+                                        <canvas id="facilityContributionsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Facility Scores Table with Indicator Details -->
+                            <div class="mt-8">
+                                <h4 class="text-lg font-semibold text-slate-900 mb-4">Facility Performance Breakdown</h4>
+                                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="overflow-x-auto max-h-[400px]">
+                                        <table class="w-full">
+                                            <thead class="bg-slate-50 sticky top-0">
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Facility</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Quarter</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Score</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Contribution</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Rating</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-200" id="facilityScoresTable">
+                                                <!-- Will be populated by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicator Breakdown -->
+                        <div id="indicator-breakdown" class="tab-content hidden">
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-slate-900 mb-4">Indicator Performance</h4>
+                                <div class="text-sm text-slate-600 mb-4">
+                                    Average scores for each indicator across all facilities
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-6">
+                                    <div class="chart-container relative" style="height: 500px;">
+                                        <canvas id="indicatorBreakdownChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Indicator Details Table -->
+                            <div class="mt-8">
+                                <h4 class="text-lg font-semibold text-slate-900 mb-4">Indicator Details</h4>
+                                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead class="bg-slate-50">
+                                                <tr>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Indicator</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Average Score</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Facilities Count</th>
+                                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">Score Range</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-200" id="indicatorDetailsTable">
+                                                <!-- Will be populated by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Distribution -->
+                        <div id="performance-distribution" class="tab-content hidden">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-slate-900 mb-4">Score Distribution</h4>
+                                    <div class="bg-slate-50 rounded-xl p-6">
+                                        <div class="chart-container relative" style="height: 400px;">
+                                            <canvas id="performanceDistributionChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-slate-900 mb-4">Performance Insights</h4>
+                                    <div class="space-y-4" id="performanceInsights">
+                                        <!-- Will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div class="bg-gradient-to-r from-blue-50 to-emerald-50 rounded-2xl p-6 mt-8">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-slate-900 mb-2">Analysis Complete</h4>
+                            <p class="text-sm text-slate-600">Close to return to the performance dashboard</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="closeThematicAnalysis()" class="px-6 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition">
+                                <i class="fas fa-check mr-2"></i>Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Store thematic data globally
+    window.thematicData = {
+        averages: {},
+        contributions: {},
+        indicatorCounts: {
+            'ART': 7,
+            'HTS': 3,
+            'PrEP': 3,
+            'PMTCT': 8,
+            'TB': 3,
+            'POST_RESP': 2
+        },
+        allFacilities: {{ all_facilities|tojson|safe if all_facilities else [] }}
+    };
+
+    // Chart instances storage
+    let componentChartInstance = null;
+    let modalCharts = {
+        facilityContributions: null,
+        performanceDistribution: null,
+        indicatorBreakdown: null
+    };
+
+    // Initialize the data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const allFacilities = {{ all_facilities|tojson|safe }};
+
+        if (allFacilities && allFacilities.length > 0) {
+            // Calculate Thematic KPI Averages
+            const thematicResults = calculateThematicAverages(allFacilities);
+            window.thematicData.averages = thematicResults.averages;
+            window.thematicData.contributions = thematicResults.contributions;
+            
+            // Update box scores
+            updateBoxScores(thematicResults.averages);
+            
+            // Create component chart
+            createComponentChart();
+        }
+    });
+
+    function calculateThematicAverages(facilities) {
+        const categories = ['ART', 'HTS', 'PrEP', 'PMTCT', 'TB', 'POST_RESP'];
+        const averages = {};
+        const contributions = {};
+
+        // Initialize data structures
+        categories.forEach(category => {
+            averages[category] = 0;
+            contributions[category] = [];
+        });
+
+        // Collect scores from each facility
+        facilities.forEach(facility => {
+            // Check if facility has thematic_kpis
+            if (facility.thematic_kpis) {
+                let kpis = facility.thematic_kpis;
+                // Parse if string
+                if (typeof kpis === 'string') {
+                    try {
+                        kpis = JSON.parse(kpis);
+                    } catch (e) {
+                        console.error('Error parsing thematic_kpis:', e);
+                        return;
+                    }
+                }
+                
+                Object.entries(kpis).forEach(([category, data]) => {
+                    if (data && data.average && categories.includes(category)) {
+                        contributions[category].push({
+                            facility: facility.Facility,
+                            quarter: facility.quarter || 'Unknown',
+                            score: data.average,
+                            facilityScore: facility.Score,
+                            facilityId: facility.id,
+                            indicators: data.indicators || [],
+                            indicatorScores: data.scores || []
+                        });
+                    }
+                });
+            }
+        });
+
+        // Calculate overall averages for each category
+        categories.forEach(category => {
+            const facilityScores = contributions[category];
+            if (facilityScores.length > 0) {
+                const total = facilityScores.reduce((sum, item) => sum + item.score, 0);
+                averages[category] = total / facilityScores.length;
+            } else {
+                averages[category] = 0;
+            }
+        });
+
+        return { averages, contributions };
+    }
+
+    function updateBoxScores(averages) {
+        Object.entries(averages).forEach(([category, average]) => {
+            const elementId = `${category.toLowerCase().replace('_', '')}-score`;
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = average.toFixed(1) + '%';
+            }
+        });
+    }
+
+    // Thematic Analysis Modal Functions
+    async function openThematicAnalysis(category) {
+        const modal = document.getElementById('thematicAnalysisModal');
+        
+        // Show modal with loading state
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        // Reset content
+        document.getElementById('modalContent').classList.add('hidden');
+        document.getElementById('modalLoading').classList.remove('hidden');
+        
+        // Update modal header
+        document.getElementById('modalCategoryTitle').textContent = category;
+        document.getElementById('modalCategorySubtitle').textContent = `Loading analysis...`;
+        
+        // Update category icon styling
+        const iconDiv = document.getElementById('modalCategoryIcon');
+        const colors = getCategoryColors(category);
+        iconDiv.className = 'w-12 h-12 rounded-xl flex items-center justify-center';
+        iconDiv.style.backgroundColor = colors.light;
+        iconDiv.innerHTML = getCategoryIcon(category);
+        
+        try {
+            // Fetch detailed data from server
+            const response = await fetch(`/api/thematic-analysis/${category}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Hide loading, show content
+                document.getElementById('modalLoading').classList.add('hidden');
+                document.getElementById('modalContent').classList.remove('hidden');
+                
+                // Update summary stats
+                document.getElementById('modalAverageScore').textContent = data.overall_average.toFixed(1) + '%';
+                document.getElementById('modalIndicatorsCount').textContent = data.indicator_count || Object.keys(data.indicator_averages || {}).length;
+                document.getElementById('modalFacilitiesCount').textContent = data.facilities_count;
+                document.getElementById('modalCategorySubtitle').textContent = `${data.facilities_count} facilities analysed`;
+                
+                // Initialize tab system
+                setupTabs();
+                
+                // Load and display data for the selected category
+                loadThematicData(category, data);
+            } else {
+                throw new Error(data.error || 'Failed to load data');
+            }
+        } catch (error) {
+            console.error('Error loading thematic data:', error);
+            document.getElementById('modalLoading').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                    <p class="text-red-600 mb-2">Error loading data</p>
+                    <p class="text-slate-500 text-sm">${error.message}</p>
+                    <button onclick="closeThematicAnalysis()" class="mt-4 px-4 py-2 bg-slate-200 rounded-lg text-slate-700">
+                        Close
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    function closeThematicAnalysis() {
+        const modal = document.getElementById('thematicAnalysisModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+        
+        // Destroy modal charts
+        Object.values(modalCharts).forEach(chart => {
+            if (chart) {
+                chart.destroy();
+            }
+        });
+        modalCharts = {
+            facilityContributions: null,
+            performanceDistribution: null,
+            indicatorBreakdown: null
+        };
+    }
+
+    function setupTabs() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                // Update button styles
+                tabBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-blue-50', 'text-blue-700', 'border-b-2', 'border-blue-500');
+                    b.classList.add('text-slate-600', 'hover:text-slate-900');
+                });
+                btn.classList.remove('text-slate-600');
+                btn.classList.add('active', 'bg-blue-50', 'text-blue-700', 'border-b-2', 'border-blue-500');
+                
+                // Show selected tab content
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(tabId).classList.remove('hidden');
+            });
+        });
+        
+        // Activate first tab
+        if (tabBtns.length > 0) {
+            tabBtns[0].click();
+        }
+    }
+
+    function loadThematicData(category, data) {
+        const colors = getCategoryColors(category);
+        const facilities = data.facilities || [];
+        
+        // 1. Facility Contributions Chart
+        createFacilityContributionsChart(category, facilities, colors);
+        
+        // 2. Update Facility Scores Table with indicator breakdown
+        updateFacilityScoresTable(facilities);
+        
+        // 3. Indicator Breakdown Chart
+        createIndicatorBreakdownChart(category, data.indicator_averages || {}, colors);
+        
+        // 4. Update Indicator Details Table
+        updateIndicatorDetailsTable(data.indicator_averages || {});
+        
+        // 5. Performance Distribution Chart
+        createPerformanceDistributionChart(category, facilities, colors);
+        
+        // 6. Performance Insights
+        updatePerformanceInsights(category, facilities);
+    }
+
+    function createFacilityContributionsChart(category, facilities, colors) {
+        const ctx = document.getElementById('facilityContributionsChart');
+        if (!ctx) return;
+        
+        // Destroy existing chart
+        if (modalCharts.facilityContributions) {
+            modalCharts.facilityContributions.destroy();
+        }
+        
+        // Prepare data (show top 15 facilities)
+        const topFacilities = facilities.slice(0, 15);
+        const labels = topFacilities.map(f => f.facility);
+        const scores = topFacilities.map(f => f.score);
+        
+        modalCharts.facilityContributions = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: scores,
+                    backgroundColor: (context) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return colors.bg;
+                        
+                        const gradient = ctx.createLinearGradient(
+                            0, chartArea.bottom, 
+                            0, chartArea.top
+                        );
+                        gradient.addColorStop(0, colors.gradient[0]);
+                        gradient.addColorStop(1, colors.gradient[1]);
+                        return gradient;
+                    },
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        titleFont: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        callbacks: {
+                            label: (context) => `${context.label}: ${context.parsed.y.toFixed(1)}%`,
+                            afterLabel: (context) => {
+                                const facility = facilities[context.dataIndex];
+                                if (facility && facility.indicator_details) {
+                                    return facility.indicator_details.map(ind => 
+                                        `${ind.name}: ${ind.score.toFixed(1)}%`
+                                    ).join('\n');
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            font: { 
+                                size: 13,
+                                weight: '600'
+                            },
+                            color: '#1f2937'
+                        },
+                        grid: { 
+                            color: 'rgba(148, 163, 184, 0.2)'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            font: { 
+                                size: 14,
+                                weight: '600'
+                            },
+                            color: '#1f2937',
+                            callback: value => value + '%'
+                        },
+                        grid: { 
+                            color: 'rgba(148, 163, 184, 0.2)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateFacilityScoresTable(facilities) {
+        const tbody = document.getElementById('facilityScoresTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        facilities.forEach(facility => {
+            // Calculate contribution percentage
+            const totalScore = facilities.reduce((sum, f) => sum + f.score, 0);
+            const contribution = totalScore > 0 ? (facility.score / totalScore * 100).toFixed(1) : '0.0';
+            const rating = getRating(facility.score);
+            const ratingClass = getRatingClass(rating);
+            
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-slate-50';
+            
+            // Create facility name cell with expandable indicator details
+            const facilityCell = document.createElement('td');
+            facilityCell.className = 'px-6 py-4 text-sm';
+            
+            let indicatorDetailsHtml = '';
+            if (facility.indicator_details && facility.indicator_details.length > 0) {
+                indicatorDetailsHtml = facility.indicator_details.map(ind => 
+                    `<div class="flex justify-between text-xs py-1 border-b border-slate-100 last:border-b-0">
+                        <span class="text-slate-600 truncate" title="${ind.name}">${ind.name}</span>
+                        <span class="font-medium ${getScoreColorClass(ind.score)}">${ind.score.toFixed(1)}%</span>
+                    </div>`
+                ).join('');
+            }
+            
+            facilityCell.innerHTML = `
+                <div class="font-medium text-slate-900">${facility.facility}</div>
+                <div class="mt-1 text-xs text-slate-500">
+                    <button onclick="toggleIndicatorDetails(this)" 
+                            class="text-blue-600 hover:text-blue-800 flex items-center">
+                        <i class="fas fa-chevron-down mr-1 text-xs indicator-icon"></i>
+                        ${facility.indicators?.length || 0} indicators
+                    </button>
+                </div>
+                <div class="indicator-details mt-2 hidden bg-slate-50 rounded p-3">
+                    ${indicatorDetailsHtml || '<div class="text-xs text-slate-500">No indicator details available</div>'}
+                </div>
+            `;
+            
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    ${facility.quarter || 'N/A'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span class="font-bold ${getScoreColorClass(facility.score)}">
+                        ${facility.score.toFixed(1)}%
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    ${contribution}%
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span class="px-2 py-1 text-xs rounded-full ${ratingClass}">
+                        ${rating}
+                    </span>
+                </td>
+            `;
+            
+            // Insert facility cell at the beginning
+            row.insertBefore(facilityCell, row.firstChild);
+            tbody.appendChild(row);
+        });
+    }
+
+    function toggleIndicatorDetails(button) {
+        const row = button.closest('tr');
+        const detailsDiv = row.querySelector('.indicator-details');
+        const icon = button.querySelector('.indicator-icon');
+        
+        if (detailsDiv.classList.contains('hidden')) {
+            detailsDiv.classList.remove('hidden');
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+            button.innerHTML = '<i class="fas fa-chevron-up mr-1 text-xs indicator-icon"></i> Hide details';
+        } else {
+            detailsDiv.classList.add('hidden');
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+            button.innerHTML = '<i class="fas fa-chevron-down mr-1 text-xs indicator-icon"></i> Show details';
+        }
+    }
+
+    function createIndicatorBreakdownChart(category, indicatorAverages, colors) {
+        const ctx = document.getElementById('indicatorBreakdownChart');
+        if (!ctx) return;
+        
+        // Destroy existing chart
+        if (modalCharts.indicatorBreakdown) {
+            modalCharts.indicatorBreakdown.destroy();
+        }
+        
+        const sortedIndicators = Object.entries(indicatorAverages)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 15); // Show top 15 indicators
+        
+        if (sortedIndicators.length === 0) {
+            ctx.parentElement.innerHTML = '<div class="text-center py-8 text-slate-500">No indicator data available for this category</div>';
+            return;
+        }
+        
+        const labels = sortedIndicators.map(([name]) => name.length > 30 ? name.substring(0, 30) + '...' : name);
+        const scores = sortedIndicators.map(([,score]) => score);
+        
+        modalCharts.indicatorBreakdown = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: scores,
+                    backgroundColor: (context) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return colors.bg;
+                        
+                        const gradient = ctx.createLinearGradient(
+                            0, chartArea.bottom, 
+                            0, chartArea.top
+                        );
+                        gradient.addColorStop(0, colors.gradient[0]);
+                        gradient.addColorStop(1, colors.gradient[1]);
+                        return gradient;
+                    },
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Horizontal bars
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        titleFont: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        callbacks: {
+                            label: (context) => `${context.label}: ${context.parsed.x}%`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            font: { 
+                                size: 14,
+                                weight: '600'
+                            },
+                            color: '#1f2937',
+                            callback: value => value + '%'
+                        },
+                        grid: { 
+                            color: 'rgba(148, 163, 184, 0.2)',
+                            drawBorder: true,
+                            borderColor: '#cbd5e1'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            font: { 
+                                size: 13,
+                                weight: '500'
+                            },
+                            color: '#374151',
+                            callback: function(value, index) {
+                                const label = this.getLabelForValue(index);
+                                return label.length > 30 ? label.substring(0, 30) + '...' : label;
+                            }
+                        },
+                        grid: { 
+                            color: 'rgba(148, 163, 184, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateIndicatorDetailsTable(indicatorAverages) {
+        const tbody = document.getElementById('indicatorDetailsTable');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        const sortedIndicators = Object.entries(indicatorAverages)
+            .sort(([,a], [,b]) => b - a);
+        
+        sortedIndicators.forEach(([indicator, avgScore]) => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-slate-50';
+            
+            // Simplified score range (you could calculate actual min/max if you have the data)
+            const scoreRange = `${Math.max(0, avgScore - 15).toFixed(1)}% - ${Math.min(100, avgScore + 15).toFixed(1)}%`;
+            
+            row.innerHTML = `
+                <td class="px-6 py-4 text-sm text-slate-900" title="${indicator}">
+                    ${indicator.length > 40 ? indicator.substring(0, 40) + '...' : indicator}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span class="font-bold ${getScoreColorClass(avgScore)}">
+                        ${avgScore.toFixed(1)}%
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    -- {/* You could add actual count here if available */}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    ${scoreRange}
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+
+    function createPerformanceDistributionChart(category, facilities, colors) {
+        const ctx = document.getElementById('performanceDistributionChart');
+        if (!ctx) return;
+        
+        // Destroy existing chart
+        if (modalCharts.performanceDistribution) {
+            modalCharts.performanceDistribution.destroy();
+        }
+        
+        // Group scores into performance ranges
+        const ranges = [
+            { label: 'Excellent (90-100%)', min: 90, max: 100, color: 'rgba(16, 185, 129, 0.8)' },
+            { label: 'Good (80-89%)', min: 80, max: 89, color: 'rgba(59, 130, 246, 0.8)' },
+            { label: 'Fair (70-79%)', min: 70, max: 79, color: 'rgba(245, 158, 11, 0.8)' },
+            { label: 'Needs Improvement (0-69%)', min: 0, max: 69, color: 'rgba(239, 68, 68, 0.8)' }
+        ];
+        
+        const data = ranges.map(range => {
+            return facilities.filter(f => f.score >= range.min && f.score <= range.max).length;
+        });
+        
+        modalCharts.performanceDistribution = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ranges.map(r => r.label),
+                datasets: [{
+                    data: data,
+                    backgroundColor: ranges.map(r => r.color),
+                    borderColor: ranges.map(r => r.color.replace('0.8', '1')),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 13,
+                                weight: '500'
+                            },
+                            color: '#374151'
+                        }
+                    },
+                    tooltip: {
+                        titleFont: {
+                            size: 14
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: (context) => {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((context.raw / total) * 100);
+                                return `${context.label}: ${context.raw} facilities (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updatePerformanceInsights(category, facilities) {
+        const container = document.getElementById('performanceInsights');
+        if (!container) return;
+        
+        const total = facilities.length;
+        if (total === 0) {
+            container.innerHTML = '<div class="text-center text-slate-500 py-8">No data available for this category</div>';
+            return;
+        }
+        
+        const average = facilities.reduce((sum, f) => sum + f.score, 0) / total;
+        const max = Math.max(...facilities.map(f => f.score));
+        const min = Math.min(...facilities.map(f => f.score));
+        
+        // Count facilities by rating
+        const ratingCounts = {
+            'Excellent': facilities.filter(f => f.score >= 90).length,
+            'Good': facilities.filter(f => f.score >= 80 && f.score < 90).length,
+            'Fair': facilities.filter(f => f.score >= 70 && f.score < 80).length,
+            'Needs Improvement': facilities.filter(f => f.score < 70).length
+        };
+        
+        // Find top performers
+        const topPerformers = facilities
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 3);
+        
+        container.innerHTML = `
+            <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <h5 class="font-semibold text-slate-900 mb-3">Performance Statistics</h5>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">Average Score:</span>
+                        <span class="font-semibold ${getScoreColorClass(average)}">${average.toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">Score Range:</span>
+                        <span class="font-semibold">${min.toFixed(1)}% - ${max.toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-600">Total Facilities:</span>
+                        <span class="font-semibold">${total}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <h5 class="font-semibold text-slate-900 mb-3">Rating Distribution</h5>
+                <div class="space-y-2">
+                    ${Object.entries(ratingCounts).map(([rating, count]) => `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full mr-2 ${getRatingClass(rating).split(' ')[0]}"></div>
+                                <span class="text-sm text-slate-600">${rating}:</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-semibold mr-2">${count}</span>
+                                <span class="text-xs text-slate-500">(${Math.round((count / total) * 100)}%)</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <h5 class="font-semibold text-slate-900 mb-3">Top Performers</h5>
+                <div class="space-y-3">
+                    ${topPerformers.map((f, i) => `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full ${['bg-yellow-100 text-yellow-800', 'bg-slate-100 text-slate-800', 'bg-amber-100 text-amber-800'][i]} flex items-center justify-center text-xs font-bold mr-2">
+                                    ${i + 1}
+                                </div>
+                                <div class="truncate max-w-[140px]" title="${f.facility}">
+                                    <span class="text-sm">${f.facility}</span>
+                                </div>
+                            </div>
+                            <span class="font-semibold ${getScoreColorClass(f.score)}">${f.score.toFixed(1)}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Helper functions
+    function getCategoryColors(category) {
+        const colors = {
+            'ART': { 
+                bg: 'rgba(16, 185, 129, 0.9)',
+                border: 'rgba(16, 185, 129, 1)',
+                light: 'rgba(16, 185, 129, 0.1)',
+                gradient: ['rgba(16, 185, 129, 0.9)', 'rgba(5, 150, 105, 1)']
+            },
+            'HTS': { 
+                bg: 'rgba(6, 182, 212, 0.9)',
+                border: 'rgba(6, 182, 212, 1)',
+                light: 'rgba(6, 182, 212, 0.1)',
+                gradient: ['rgba(6, 182, 212, 0.9)', 'rgba(8, 145, 178, 1)']
+            },
+            'PrEP': { 
+                bg: 'rgba(139, 92, 246, 0.9)',
+                border: 'rgba(139, 92, 246, 1)',
+                light: 'rgba(139, 92, 246, 0.1)',
+                gradient: ['rgba(139, 92, 246, 0.9)', 'rgba(124, 58, 237, 1)']
+            },
+            'PMTCT': { 
+                bg: 'rgba(236, 72, 153, 0.9)',
+                border: 'rgba(236, 72, 153, 1)',
+                light: 'rgba(236, 72, 153, 0.1)',
+                gradient: ['rgba(236, 72, 153, 0.9)', 'rgba(219, 39, 119, 1)']
+            },
+            'TB': { 
+                bg: 'rgba(245, 158, 11, 0.9)',
+                border: 'rgba(245, 158, 11, 1)',
+                light: 'rgba(245, 158, 11, 0.1)',
+                gradient: ['rgba(245, 158, 11, 0.9)', 'rgba(217, 119, 6, 1)']
+            },
+            'POST_RESP': { 
+                bg: 'rgba(59, 130, 246, 0.9)',
+                border: 'rgba(59, 130, 246, 1)',
+                light: 'rgba(59, 130, 246, 0.1)',
+                gradient: ['rgba(59, 130, 246, 0.9)', 'rgba(37, 99, 235, 1)']
+            }
+        };
+        return colors[category] || colors.ART;
+    }
+
+    function getCategoryIcon(category) {
+        const icons = {
+            'ART': '<i class="fas fa-pills text-emerald-600 text-xl"></i>',
+            'HTS': '<i class="fas fa-vial text-blue-600 text-xl"></i>',
+            'PrEP': '<i class="fas fa-shield-alt text-purple-600 text-xl"></i>',
+            'PMTCT': '<i class="fas fa-baby text-pink-600 text-xl"></i>',
+            'TB': '<i class="fas fa-lungs text-amber-600 text-xl"></i>',
+            'POST_RESP': '<i class="fas fa-headset text-indigo-600 text-xl"></i>'
+        };
+        return icons[category] || '<i class="fas fa-chart-pie text-slate-600 text-xl"></i>';
+    }
+
+    function getRating(score) {
+        if (score >= 90) return 'Excellent';
+        if (score >= 80) return 'Good';
+        if (score >= 70) return 'Fair';
+        return 'Needs Improvement';
+    }
+
+    function getRatingClass(rating) {
+        switch(rating) {
+            case 'Excellent': return 'bg-emerald-100 text-emerald-800';
+            case 'Good': return 'bg-blue-100 text-blue-800';
+            case 'Fair': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-red-100 text-red-800';
+        }
+    }
+
+    function getScoreColorClass(score) {
+        if (score >= 90) return 'text-emerald-600';
+        if (score >= 80) return 'text-blue-600';
+        if (score >= 70) return 'text-yellow-600';
+        return 'text-red-600';
+    }
+
+    // Component chart function (from your original code)
+    function createComponentChart() {
+        const allFacilities = window.thematicData.allFacilities || [];
+        const ctx = document.getElementById('componentChart');
+        if (!ctx || allFacilities.length === 0) return;
+        
+        if (componentChartInstance) {
+            componentChartInstance.destroy();
+        }
+        
+        // Calculate component averages
+        const availabilityScores = allFacilities
+            .filter(f => f.Availability !== null && f.Availability !== undefined)
+            .map(f => f.Availability);
+        
+        const integrityScores = allFacilities
+            .filter(f => f.Integrity !== null && f.Integrity !== undefined)
+            .map(f => f.Integrity);
+        
+        const consistencyScores = allFacilities
+            .filter(f => f.Consistency !== null && f.Consistency !== undefined)
+            .map(f => f.Consistency);
+        
+        const validityScores = allFacilities
+            .filter(f => f.Validity !== null && f.Validity !== undefined)
+            .map(f => f.Validity);
+        
+        const componentAverages = [
+            availabilityScores.length > 0 ? availabilityScores.reduce((a, b) => a + b, 0) / availabilityScores.length : 0,
+            integrityScores.length > 0 ? integrityScores.reduce((a, b) => a + b, 0) / integrityScores.length : 0,
+            consistencyScores.length > 0 ? consistencyScores.reduce((a, b) => a + b, 0) / consistencyScores.length : 0,
+            validityScores.length > 0 ? validityScores.reduce((a, b) => a + b, 0) / validityScores.length : 0
+        ];
+        
+        const componentColors = {
+            'Availability': ['rgba(59, 130, 246, 0.9)', 'rgba(37, 99, 235, 1)'],
+            'Integrity': ['rgba(16, 185, 129, 0.9)', 'rgba(5, 150, 105, 1)'],
+            'Consistency': ['rgba(245, 158, 11, 0.9)', 'rgba(217, 119, 6, 1)'],
+            'Validity': ['rgba(139, 92, 246, 0.9)', 'rgba(124, 58, 237, 1)']
+        };
+        
+        componentChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Availability', 'Integrity', 'Consistency', 'Validity'],
+                datasets: [{
+                    label: 'Average Score (%)',
+                    data: componentAverages,
+                    backgroundColor: (context) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return 'rgba(59, 130, 246, 0.7)';
+                        
+                        const index = context.dataIndex;
+                        const colors = [
+                            componentColors['Availability'],
+                            componentColors['Integrity'],
+                            componentColors['Consistency'],
+                            componentColors['Validity']
+                        ][index] || ['rgba(59, 130, 246, 0.9)', 'rgba(37, 99, 235, 1)'];
+                        
+                        const gradient = ctx.createLinearGradient(
+                            0, chartArea.bottom, 
+                            0, chartArea.top
+                        );
+                        gradient.addColorStop(0, colors[0]);
+                        gradient.addColorStop(1, colors[1]);
+                        return gradient;
+                    },
+                    borderColor: ['rgba(59, 130, 246, 1)', 'rgba(16, 185, 129, 1)', 'rgba(245, 158, 11, 1)', 'rgba(139, 92, 246, 1)'],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        titleFont: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.parsed.y.toFixed(1)}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#374151',
+                            font: { 
+                                size: 14, // Increased from 12
+                                family: "'Inter', sans-serif",
+                                weight: '600'
+                            }
+                        },
+                        grid: { 
+                            color: 'rgba(148, 163, 184, 0.1)',
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            color: '#374151',
+                            font: { 
+                                size: 14, // Increased from 11
+                                family: "'Inter', sans-serif",
+                                weight: '600'
+                            },
+                            callback: value => value + '%',
+                            stepSize: 20
+                        },
+                        grid: { 
+                            color: 'rgba(148, 163, 184, 0.1)',
+                            drawBorder: false
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 40,
+                        bottom: 10
+                    }
+                }
+            }
+        });
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('thematicAnalysisModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeThematicAnalysis();
+        }
+    });
+</script>
+
+<style>
+    .chart-container {
+        position: relative;
+        width: 100%;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        margin-bottom: 20px;
+    }
+    
+    .chart-container canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        padding: 20px;
+    }
+    
+    /* Force larger fonts in all charts */
+    .chart-container canvas {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Darker axis text for better contrast */
+    .chartjs-tooltip {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Thematic Box Styles */
+    .thematic-box {
+        transition: all 0.3s ease;
+    }
+    
+    .thematic-box:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Modal Styles */
+    #thematicAnalysisModal {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    /* Tab Styles */
+    .tab-btn {
+        position: relative;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .tab-btn.active {
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        border-bottom: 2px solid #3b82f6;
+    }
+    
+    /* Scrollbar styling for modal */
+    #thematicAnalysisModal .overflow-y-auto {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+    
+    #thematicAnalysisModal .overflow-y-auto::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #thematicAnalysisModal .overflow-y-auto::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+    
+    #thematicAnalysisModal .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    /* Animation for box click */
+    @keyframes boxClick {
+        0% { transform: scale(1); }
+        50% { transform: scale(0.98); }
+        100% { transform: scale(1); }
+    }
+    
+    .thematic-box:active {
+        animation: boxClick 0.2s ease;
+    }
+</style>
+{% endblock %}

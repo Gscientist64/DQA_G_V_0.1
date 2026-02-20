@@ -1,0 +1,138 @@
+<!-- templates/debug_extraction.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Extraction - {{ facility.Facility }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #2c3e50; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .success { color: #27ae60; font-weight: bold; }
+        .error { color: #e74c3c; font-weight: bold; }
+        .warning { color: #f39c12; font-weight: bold; }
+        .info-box { background: #e8f4fc; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .col-dataset { background: #e8f5e8; }
+        .col-score { background: #fff3cd; }
+        .col-header { background: #d1ecf1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Debug DVV Extraction: {{ facility.Facility }}</h1>
+            <p>File: {{ debug_data.dvv_filename }}</p>
+            <p>Header Row: 
+                {% if debug_data.header_row %}
+                    <span class="success">Row {{ debug_data.header_row }}</span>
+                {% else %}
+                    <span class="error">Not found</span>
+                {% endif %}
+            </p>
+            <p>Dimensions: {{ debug_data.max_row }} rows × {{ debug_data.max_column }} columns</p>
+            <a href="{{ url_for('routes.facility_detail', facility_id=facility.id) }}">← Back to Facility</a>
+        </div>
+        
+        <div class="section">
+            <h2>Extraction Test (Rows 10-30)</h2>
+            <p>Checking what's in columns C (Dataset), D (Description), AQ (Score), AR (Max Score)</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Row</th>
+                        <th class="col-dataset">Column C (Dataset)</th>
+                        <th>Column D (Description)</th>
+                        <th class="col-score">Column AQ (Score)</th>
+                        <th>Column AR (Max Score)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in debug_data.extraction_test %}
+                    <tr>
+                        <td><strong>{{ row.row }}</strong></td>
+                        <td class="col-dataset">
+                            {% if row.dataset != 'None' %}
+                                <span class="success">{{ row.dataset }}</span>
+                            {% else %}
+                                <span class="error">Empty</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.description }}</td>
+                        <td class="col-score">
+                            {% if row.score != 'None' %}
+                                <span class="success">{{ row.score }}</span>
+                            {% else %}
+                                <span class="error">Empty</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.max_score }}</td>
+                        <td>
+                            {% if row.dataset != 'None' and row.score != 'None' %}
+                                <span class="success">✓ Extractable</span>
+                            {% elif row.dataset != 'None' and row.score == 'None' %}
+                                <span class="warning">⚠️ No score</span>
+                            {% elif row.dataset == 'None' and row.score != 'None' %}
+                                <span class="warning">⚠️ No dataset</span>
+                            {% else %}
+                                <span class="error">✗ Skip</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Current Thematic Data in Facility</h2>
+            {% if facility.thematic_areas and facility.thematic_areas|length > 0 %}
+                <p class="success">✓ {{ facility.thematic_areas|length }} thematic areas found in current analysis</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Group</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for area in facility.thematic_areas[:10] %}
+                        <tr>
+                            <td>{{ area.name }}</td>
+                            <td>{{ area.group }}</td>
+                            <td>{{ area.overall_pct }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if facility.thematic_areas|length > 10 %}
+                    <p>... and {{ facility.thematic_areas|length - 10 }} more</p>
+                {% endif %}
+            {% else %}
+                <div class="info-box">
+                    <p class="error">✗ No thematic areas found in current analysis!</p>
+                    <p>This could be because:</p>
+                    <ul>
+                        <li>The DVV template format has changed</li>
+                        <li>Dataset codes are in a different column</li>
+                        <li>Scores are in a different column</li>
+                        <li>The extraction function needs adjustment</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="section">
+            <h2>Raw Debug Data</h2>
+            <pre>{{ debug_data|tojson(indent=2) }}</pre>
+        </div>
+    </div>
+</body>
+</html>

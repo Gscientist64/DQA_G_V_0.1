@@ -1,0 +1,27 @@
+To prevent Windows Defender from flagging your application:
+
+1. TEST ON MULTIPLE MACHINES FIRST
+   - Run the executable on 3-4 different Windows machines
+   - This helps build reputation with Microsoft
+
+2. SUBMIT TO MICROSOFT (Recommended):
+   - Go to: https://www.microsoft.com/en-us/wdsi/filesubmission
+   - Upload your executable
+   - Select: "Developer - My software"
+   - Reason: "Not malware / false positive"
+   - Wait 24-48 hours for analysis
+
+3. ORGANIZATIONAL WHITELISTING:
+   For organizations, add to Windows Defender exclusions:
+   - Windows Security -> Virus & threat protection
+   -> Manage settings -> Add or remove exclusions
+   -> Add folder exclusion for your app directory
+
+4. DISTRIBUTION TIPS:
+   - Include a digital signature if possible
+   - Provide clear documentation
+   - Use a professional installer
+   - Include contact information
+
+5. MONITOR REPUTATION:
+   Check reputation here: https://www.virustotal.com

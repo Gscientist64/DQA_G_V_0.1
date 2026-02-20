@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+
+{% block title %}DQA Instructional Manual{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">DQA Instructional Manual</h1>
+                    <p class="text-slate-600 mt-2">Complete guide to Data Quality Assessment Methodology</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-slate-500">Methodology Version</p>
+                        <p class="font-semibold text-emerald-600">ACE-5 Comprehensive</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Sidebar Navigation -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 sticky top-8">
+                    <h3 class="font-semibold text-slate-900 mb-4">Manual Contents</h3>
+                    <nav class="space-y-2">
+                        <a href="#introduction" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Introduction</a>
+                        <a href="#core-objectives" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Core Objectives</a>
+                        <a href="#ace5-process" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">ACE-5 DQA Process</a>
+                        <a href="#availability-checks" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Availability Checks</a>
+                        <a href="#integrity-checks" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Integrity Checks</a>
+                        <a href="#consistency-checks" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Consistency Checks</a>
+                        <a href="#tx-new-audit" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">TX_NEW Audit</a>
+                        <a href="#client-verification" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Client Verification</a>
+                        <a href="#remediation-plan" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Remediation Plan</a>
+                        <a href="#common-gaps" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Common Gaps</a>
+                        <a href="#improvement-strategy" class="block py-2 px-3 rounded-lg text-slate-700 hover:bg-slate-100 transition">Improvement Strategy</a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="lg:col-span-3 space-y-8">
+                <!-- Introduction -->
+                <section id="introduction" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">INTRODUCTION</h2>
+                            <p class="text-slate-600">Getting the Data Right</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 text-lg leading-relaxed mb-6">
+                            The Data Quality Assessment (DQA) process ensures that all reported health data is 
+                            <strong>accurate, consistent, complete, and reliable</strong>. It strengthens the systems that support 
+                            data reporting and verifies that site-level documentation aligns with what is submitted 
+                            to national platforms and donors.
+                        </p>
+                        <p class="text-slate-700 leading-relaxed">
+                            DQA also builds the capacity of facility teams to manage data effectively and identify 
+                            programmatic gaps that require action. This comprehensive approach ensures data integrity 
+                            from source documentation to final reporting.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Core Objectives -->
+                <section id="core-objectives" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-bullseye text-emerald-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">CORE OBJECTIVES</h2>
+                            <p class="text-slate-600">Goals of the DQA Process</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 mb-6">
+                            The goals of the DQA process are to:
+                        </p>
+                        <ul class="text-slate-700 space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Identify system issues affecting data quality</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Validate how facilities aggregate, document, and report data</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Detect and correct discrepancies between source data and reported figures</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Improve staff capacity in data management and accurate reporting</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Highlight program quality issues that require follow-up</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Strengthen long-term data quality improvement across all sites</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- ACE-5 Comprehensive DQA Process -->
+                <section id="ace5-process" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-cogs text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">THE ACE-5 COMPREHENSIVE DQA PROCESS</h2>
+                            <p class="text-slate-600">Focuses on Four dimensions of data quality</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">DATA VERIFICATION AND VALIDATION</h3>
+                        <p class="text-slate-700 mb-6">
+                            This uses project standardized Data validation and verification (DVV) template:
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                                <h4 class="font-semibold text-slate-900 mb-3 flex items-center">
+                                    <i class="fas fa-check-double text-emerald-600 mr-2"></i>
+                                    Validity
+                                </h4>
+                                <p class="text-slate-700">Does the data represent the intended result clearly and adequately?</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                                <h4 class="font-semibold text-slate-900 mb-3 flex items-center">
+                                    <i class="fas fa-database text-blue-600 mr-2"></i>
+                                    Availability
+                                </h4>
+                                <p class="text-slate-700">Are registers, source documents, and forms available, completely filled, signed and sighted on-site?</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                                <h4 class="font-semibold text-slate-900 mb-3 flex items-center">
+                                    <i class="fas fa-sync-alt text-amber-600 mr-2"></i>
+                                    Consistency
+                                </h4>
+                                <p class="text-slate-700">Is the reported data the same across registers, forms, and reporting platforms?</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                                <h4 class="font-semibold text-slate-900 mb-3 flex items-center">
+                                    <i class="fas fa-shield-alt text-red-600 mr-2"></i>
+                                    Integrity
+                                </h4>
+                                <p class="text-slate-700">Are documents free from alterations or manipulation?</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                            <h4 class="font-semibold text-blue-900 mb-3">📋 Expected Documents and Platforms for Validation</h4>
+                            <p class="text-blue-800 mb-3">
+                                Data validation and verification compares values across:
+                            </p>
+                            <ul class="text-blue-800 space-y-2">
+                                <li>Source registers</li>
+                                <li>Monthly summary forms</li>
+                                <li>Electronic Medical Records (LAMISplus)</li>
+                                <li>District Health Information System (DPT, MSF, NDARS)</li>
+                                <li>Other Patient Management and monitoring tools</li>
+                            </ul>
+                            <p class="text-blue-800 mt-3 font-semibold">
+                                Validation involves recounting reported numbers and ensuring they align 100% with documentation across all platforms.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Availability Checks -->
+                <section id="availability-checks" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-clipboard-check text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">AVAILABILITY CHECKS</h2>
+                            <p class="text-slate-600">Document Presence and Completeness</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 mb-6">
+                            The following must be verified during availability checks:
+                        </p>
+                        <ul class="text-slate-700 space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-file-medical text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>All required source documents and registers must be physically present</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-edit text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>They should be complete, clearly filled, and duly signed</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-calendar-alt text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Signatures and dates must align with reporting periods</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-amber-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Missing registers or unsigned sections flag potential data gaps</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Integrity Checks -->
+                <section id="integrity-checks" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-shield-alt text-red-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">INTEGRITY CHECKS</h2>
+                            <p class="text-slate-600">Data Authenticity and Trustworthiness</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 mb-6">
+                            During review, staff look for:
+                        </p>
+                        <ul class="text-slate-700 space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-pen-fancy text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Alterations or corrections in summary forms and registers</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-tornado text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Pages torn out, suspicious overwriting, or inconsistent ink usage</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-search text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Documentation inconsistencies suggesting record tampering</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Consistency Checks -->
+                <section id="consistency-checks" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-sync-alt text-amber-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">CONSISTENCY CHECKS</h2>
+                            <p class="text-slate-600">Cross-Platform Data Alignment</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 mb-6">
+                            Randomly select folders/forms (e.g., 5 samples) and confirm that:
+                        </p>
+                        <ul class="text-slate-700 space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-id-card text-amber-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Unique ID matches across all points of documentation</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-user text-amber-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Age and sex are consistently maintained across forms</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-stethoscope text-amber-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Clinical information such as regimen, test results, and ART status is consistent across tools</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- TX_NEW Audit -->
+                <section id="tx-new-audit" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-user-plus text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">TX_NEW AUDIT</h2>
+                            <p class="text-slate-600">New ART Client Verification</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">PURPOSE</h3>
+                        <p class="text-slate-700 mb-6">
+                            To ensure that all newly initiated ART clients are accurately recorded and reported based on defined audit parameters.
+                        </p>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">WHAT IS AUDITED</h3>
+                        <p class="text-slate-700 mb-4">
+                            For each new ART client, the following must be verified:
+                        </p>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                            <span class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">Sex</span>
+                            <span class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">Date of Birth</span>
+                            <span class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">ART Start Date</span>
+                            <span class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">Regimen</span>
+                            <span class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">Refill Month</span>
+                            <span class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm font-medium">TPT commencement date</span>
+                        </div>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">SOURCES USED</h3>
+                        <ul class="text-slate-700 space-y-2">
+                            <li>Client folders</li>
+                            <li>Client referral forms</li>
+                            <li>Pharmacy refill records</li>
+                            <li>EMR entries</li>
+                            <li>Facility ART registers</li>
+                           
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Client Verification Audit -->
+                <section id="client-verification" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-users text-indigo-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">CLIENT VERIFICATION AUDIT</h2>
+                            <p class="text-slate-600">Deduplication Accuracy</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">PURPOSE</h3>
+                        <p class="text-slate-700 mb-6">
+                            To ensure the accuracy of client deduplication outcomes and documentation.
+                        </p>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">WHAT IS AUDITED</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200">
+                                <h4 class="font-semibold text-indigo-900 mb-2">True Duplicates</h4>
+                                <p class="text-indigo-800 text-sm">Clients identified as true duplicates and removed from the index facility.</p>
+                            </div>
+                            <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200">
+                                <h4 class="font-semibold text-indigo-900 mb-2">Invalid Clients</h4>
+                                <p class="text-indigo-800 text-sm">Clients who could not be reached and were classified as "invalid."</p>
+                            </div>
+                        </div>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">VERIFICATION PARAMETERS</h3>
+                        <ul class="text-slate-700 space-y-2 mb-6">
+                            <li>Final verification status (valid/invalid)</li>
+                            <li>Date of verification</li>
+                            <li>Documented reason for invalidation</li>
+                            <li>Consistency between EMR and verification form</li>
+                            <li>Availability of biometric enrollment form in client folder</li>
+                            <li>Completely filled and properly signed biometrics enrollment and client-verification forms</li>
+                        </ul>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">SOURCES USED</h3>
+                        <ul class="text-slate-700 space-y-2">
+                            <li>Client Verification outcome forms</li>
+                            <li>EMR deduplication outcomes</li>
+                            <li>State-level final deduplication files</li>
+                            <li>Facility documentation records</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Remediation Plan Monitoring -->
+                <section id="remediation-plan" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-tasks text-orange-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">REMEDIATION PLAN MONITORING</h2>
+                            <p class="text-slate-600">Tracking completion of Corrective Action Plan</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">PURPOSE</h3>
+                        <p class="text-slate-700 mb-6">
+                            To confirm that all previously identified data issues have been corrected.
+                        </p>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">WHAT IS AUDITED</h3>
+                        <ul class="text-slate-700 space-y-3 mb-6">
+                            <li class="flex items-start">
+                                <i class="fas fa-file-medical-alt text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>TX_NEW client records with issues identified in past assessments</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-chart-line text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Indicators where past discrepancies occurred (e.g., mismatch between MSF and registers)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-flag text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Any variables flagged for correction in earlier remediation plans</span>
+                            </li>
+                        </ul>
+
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">AUDIT TRAIL</h3>
+                        <ul class="text-slate-700 space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-search text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Checks are performed across all platforms (registers, EMR, DHIS, etc.)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-edit text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Corrections must be documented, updated, and validated</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-user-shield text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>Facility teams are guided to ensure sustainable fixes, not temporary adjustments</span>
+                            </li>
+                        </ul>
+
+                        <div class="bg-orange-50 border border-orange-200 rounded-xl p-6 mt-6">
+                            <h4 class="font-semibold text-orange-900 mb-3">ACTION PLAN DEVELOPMENT</h4>
+                            <p class="text-orange-800">
+                                After reviewing findings at each site, a corrective action plan is developed. The plan addresses 
+                                root causes, assigns responsibilities, sets clear timelines, and focuses on strengthening 
+                                long-term data quality systems and reporting structures.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Common Gaps -->
+                <section id="common-gaps" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">COMMON GAPS IDENTIFIED IN DQA PROCESSES</h2>
+                            <p class="text-slate-600">Recurring Issues to Avoid</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <ul class="text-slate-700 space-y-4">
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Incomplete reporting</strong> in the DQA templates </span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Incorrect domain scoring</strong> (e.g., awarding a score for consistency when availability was zero)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Partial site reporting</strong> or non-reporting</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Missing documentation</strong>, unsigned forms, or improperly filled registers</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Mismatch between EMR and registers</strong></span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Ongoing Improvement Strategy -->
+                <section id="improvement-strategy" class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-chart-line text-emerald-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">ONGOING IMPROVEMENT STRATEGY</h2>
+                            <p class="text-slate-600">Continuous Quality Enhancement</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-slate max-w-none">
+                        <p class="text-slate-700 mb-6">
+                            The DQA methodology emphasizes continued improvement through:
+                        </p>
+                        <ul class="text-slate-700 space-y-4">
+                            <li class="flex items-start">
+                                <i class="fas fa-graduation-cap text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Regular training and orientation</strong> for facility teams</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-wrench text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Consistent correction of discrepancies</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-chart-bar text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Routine analysis and feedback sessions</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-clipboard-list text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Implementation and monitoring of remediation plans</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-cogs text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Continuous strengthening of data systems</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-file-contract text-emerald-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span><strong>Ensuring that documentation practice matches national and program standards</strong></span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Quick Help -->
+                <section class="bg-gradient-to-r from-blue-500 to-emerald-500 rounded-2xl p-8 text-white">
+                    <div class="text-center">
+                        <h2 class="text-2xl font-bold mb-4">Need DQA Support?</h2>
+                        <p class="mb-6 opacity-90">Contact the DQA support team for methodology guidance and technical assistance</p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="mailto:ladamu@ecews.org" class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Email DQA Team
+                            </a>
+                            <a href="#" class="inline-flex items-center px-6 py-3 bg-white text-emerald-600 rounded-xl font-semibold hover:bg-emerald-50 transition">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Templates
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

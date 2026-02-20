@@ -1,0 +1,511 @@
+<!-- app/templates/analysis.html-->
+
+{% extends "base.html" %}
+
+{% block title %}DQA Analysis{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">DQA Analysis</h1>
+                    <p class="text-slate-600 mt-2">Upload DVV Template + Client Level + VL Unsuppressed files for each facility</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-slate-500">Processed Facilities</p>
+                        <p class="font-semibold text-emerald-600">{{ stats.total_facilities if stats else (facilities|length if facilities else 0) }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-slate-500">Average Score</p>
+                        <p class="font-semibold text-emerald-600">{{ "%.1f"|format(stats.average_score) if stats and stats.average_score else "0.0" }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Action Buttons -->
+        <div class="flex justify-end mb-6 space-x-4">
+            <a href="{{ url_for('routes.batch_upload') }}"
+               class="inline-flex items-center px-5 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-medium hover:bg-blue-100 transition">
+                <i class="fas fa-layer-group mr-2"></i>
+                Batch Upload
+            </a>
+            {% if facilities|length > 0 %}
+            <a href="{{ url_for('routes.export_excel') }}"
+               class="inline-flex items-center px-5 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium hover:bg-emerald-100 transition">
+                <i class="fas fa-file-excel mr-2"></i>
+                Export to Excel
+            </a>
+            <a href="{{ url_for('routes.export_json') }}"
+               class="inline-flex items-center px-5 py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl font-medium hover:bg-purple-100 transition">
+                <i class="fas fa-file-code mr-2"></i>
+                Export to JSON
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Upload Section -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl p-8 shadow-lg border border-slate-200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mr-4">
+                            <i class="fas fa-upload text-emerald-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">Upload DQA Files (3 required)</h2>
+                            <p class="text-slate-600">All three files are required to compute the facility final DQA score</p>
+                        </div>
+                    </div>
+
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        <div class="mb-6 space-y-2">
+                          {% for category, message in messages %}
+                            {% if category == 'warning' %}
+                            <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-sm">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                {{ message }}
+                            </div>
+                            {% else %}
+                            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                {{ message }}
+                            </div>
+                            {% endif %}
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    {% endwith %}
+
+                    <!-- File Size Warning -->
+                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-500 mt-0.5 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-blue-800">File Size Limit: 50MB per file</p>
+                                <p class="text-xs text-blue-600 mt-1">Large files may take longer to process. Ensure your Excel files don't exceed this limit.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Form -->
+                    <form
+                        action="{{ url_for('routes.upload_file') }}"
+                        method="post"
+                        enctype="multipart/form-data"
+                        class="space-y-6"
+                        id="uploadForm"
+                    >
+                        <!-- Quarter Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                <i class="fas fa-calendar mr-2"></i>
+                                Select Quarter
+                            </label>
+                            <select
+                                name="quarter"
+                                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                            >
+                                {% for q in quarters %}
+                                    <option value="{{ q }}" {% if q == 'Q4' %}selected{% endif %}>{{ q }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- DVV TEMPLATE UPLOAD -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                <i class="fas fa-file-excel mr-2 text-green-600"></i>
+                                1) DVV Template (Required)
+                            </label>
+
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-emerald-400 transition dvv-drop">
+                                <input
+                                    type="file"
+                                    name="dvv_file"
+                                    accept=".xls,.xlsx"
+                                    class="hidden"
+                                    id="dvvInput"
+                                    required
+                                />
+                                <div class="mb-3">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-2"></i>
+                                    <p class="text-base font-medium text-slate-700">Drop DVV Template here or click to browse</p>
+                                    <p class="text-slate-500 text-sm mt-1">.xls or .xlsx format</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('dvvInput').click()"
+                                    class="inline-flex items-center px-5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 font-medium hover:bg-slate-200 transition"
+                                >
+                                    <i class="fas fa-folder-open mr-2"></i>
+                                    Choose DVV File
+                                </button>
+                            </div>
+                            <div id="dvvList" class="mt-3 space-y-2"></div>
+                            <p class="text-xs text-slate-500 mt-2">Should contain DVV template sheet with AS97 final score</p>
+                        </div>
+
+                        <!-- CLIENT LEVEL UPLOAD -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                <i class="fas fa-file-excel mr-2 text-blue-600"></i>
+                                2) Client Level Sheet (Required)
+                            </label>
+
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-emerald-400 transition client-drop">
+                                <input
+                                    type="file"
+                                    name="client_file"
+                                    accept=".xls,.xlsx"
+                                    class="hidden"
+                                    id="clientInput"
+                                    required
+                                />
+                                <div class="mb-3">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-2"></i>
+                                    <p class="text-base font-medium text-slate-700">Drop Client Level file here or click to browse</p>
+                                    <p class="text-slate-500 text-sm mt-1">.xls or .xlsx format</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('clientInput').click()"
+                                    class="inline-flex items-center px-5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 font-medium hover:bg-slate-200 transition"
+                                >
+                                    <i class="fas fa-folder-open mr-2"></i>
+                                    Choose Client Level File
+                                </button>
+                            </div>
+                            <div id="clientList" class="mt-3 space-y-2"></div>
+                            <p class="text-xs text-slate-500 mt-2">Should contain TRUE/FALSE columns from AA to AL (12 columns)</p>
+                        </div>
+
+                        <!-- VL UNSUPPRESSED UPLOAD -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                <i class="fas fa-file-excel mr-2 text-purple-600"></i>
+                                3) VL Unsuppressed Sheet (Required)
+                            </label>
+
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-emerald-400 transition vl-drop">
+                                <input
+                                    type="file"
+                                    name="vl_file"
+                                    accept=".xls,.xlsx"
+                                    class="hidden"
+                                    id="vlInput"
+                                    required
+                                />
+                                <div class="mb-3">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-2"></i>
+                                    <p class="text-base font-medium text-slate-700">Drop VL Unsuppressed file here or click to browse</p>
+                                    <p class="text-slate-500 text-sm mt-1">.xls or .xlsx format</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('vlInput').click()"
+                                    class="inline-flex items-center px-5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 font-medium hover:bg-slate-200 transition"
+                                >
+                                    <i class="fas fa-folder-open mr-2"></i>
+                                    Choose VL File
+                                </button>
+                            </div>
+                            <div id="vlList" class="mt-3 space-y-2"></div>
+                            <p class="text-xs text-slate-500 mt-2">Should contain TRUE/FALSE columns from AA to AM</p>
+                        </div>
+
+                        <!-- Processing Status -->
+                        <div id="processingStatus" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                            <div class="flex items-center">
+                                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></div>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800">Processing files...</p>
+                                    <p class="text-xs text-blue-600 mt-1">This may take a few moments depending on file size.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button
+                            type="submit"
+                            id="submitBtn"
+                            class="w-full inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-400 text-white font-semibold text-lg shadow-lg shadow-emerald-500/30 hover:from-emerald-400 hover:to-cyan-300 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        >
+                            <i class="fas fa-rocket mr-3"></i>
+                            Analyse Facility (3 files)
+                        </button>
+
+                        <!-- Alternative Option -->
+                        <div class="text-center pt-4 border-t border-slate-200">
+                            <p class="text-sm text-slate-600">
+                                Processing multiple facilities? 
+                                <a href="{{ url_for('routes.batch_upload') }}" class="text-blue-600 font-medium hover:text-blue-700">
+                                    Use batch upload
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Processing Info -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 mt-8">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">What happens during analysis?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
+                            <i class="fas fa-search text-blue-600 text-2xl mb-3"></i>
+                            <h4 class="font-semibold text-slate-900">Data Extraction</h4>
+                            <p class="text-slate-600 text-sm mt-1">DVV final score (AS97) + thematic area scores (AQ rows)</p>
+                        </div>
+                        <div class="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                            <i class="fas fa-calculator text-emerald-600 text-2xl mb-3"></i>
+                            <h4 class="font-semibold text-slate-900">Boolean Scoring</h4>
+                            <p class="text-slate-600 text-sm mt-1">TRUE / Total × 100 per column for Client Level and VL</p>
+                            <p class="text-xs text-slate-500 mt-1">Stops at last row with data in column C</p>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-xl border border-purple-200">
+                            <i class="fas fa-chart-bar text-purple-600 text-2xl mb-3"></i>
+                            <h4 class="font-semibold text-slate-900">Final Facility Score</h4>
+                            <p class="text-slate-600 text-sm mt-1">(DVV + Client Level + VL Unsuppressed) ÷ 3</p>
+                            <p class="text-xs text-slate-500 mt-1">With quality checks and warnings</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-8">
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h3 class="font-semibold text-slate-900 mb-4">System Statistics</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Total Facilities</span>
+                            <span class="font-semibold text-emerald-600">{{ stats.total_facilities if stats else 0 }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Average Score</span>
+                            <span class="font-semibold text-blue-600">{{ "%.1f"|format(stats.average_score) if stats and stats.average_score else "0.0" }}%</span>
+                        </div>
+                        {% if stats and stats.ratings_distribution %}
+                        <div class="pt-4 border-t border-slate-200">
+                            <h4 class="text-sm font-medium text-slate-700 mb-2">Ratings Distribution</h4>
+                            <div class="space-y-2">
+                                {% for rating, count in stats.ratings_distribution.items() %}
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">{{ rating }}</span>
+                                    <span class="font-semibold text-slate-900">{{ count }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- File Requirements -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h3 class="font-semibold text-slate-900 mb-4">File Requirements</h3>
+                    <ul class="space-y-3 text-sm text-slate-700">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 mr-3 flex-shrink-0"></i>
+                            <span><span class="font-medium">DVV Template</span> must include DVV template sheet and AS97 final score</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 mr-3 flex-shrink-0"></i>
+                            <span><span class="font-medium">Client Level</span> and <span class="font-medium">VL files</span> must contain TRUE/FALSE columns</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 mr-3 flex-shrink-0"></i>
+                            <span><span class="font-medium">Column C</span> must have data to determine last row</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-emerald-500 mt-0.5 mr-3 flex-shrink-0"></i>
+                            <span>Facility name in DVV template cell <span class="font-mono">V4</span></span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-3 flex-shrink-0"></i>
+                            <span><span class="font-medium">Max file size:</span> 50MB per file</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Recent Activity -->
+                {% if facilities and facilities|length > 0 %}
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h3 class="font-semibold text-slate-900 mb-4">Recent Facilities</h3>
+                    <div class="space-y-3">
+                        {% for facility in facilities[-3:]|reverse %}
+                        <a href="{{ url_for('routes.facility_detail', facility_id=facility.id) }}" 
+                           class="block p-3 hover:bg-slate-50 rounded-lg border border-slate-200 transition group">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-medium text-slate-900 group-hover:text-emerald-600 truncate">{{ facility.Facility }}</span>
+                                <span class="text-sm font-semibold text-emerald-600">{{ "%.1f"|format(facility.Score) }}%</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-500">{{ facility.quarter }}</span>
+                                <span class="text-xs px-2 py-1 rounded-full 
+                                    {% if facility.rating == 'Excellent' %}bg-emerald-100 text-emerald-800
+                                    {% elif facility.rating == 'Good' %}bg-blue-100 text-blue-800
+                                    {% elif facility.rating == 'Poor' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ facility.rating if facility.rating else 'N/A' }}
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quick Links -->
+                <div class="bg-gradient-to-r from-blue-500 to-emerald-500 rounded-2xl p-6 text-white">
+                    <h3 class="font-semibold mb-3">Ready to View Performance?</h3>
+                    <p class="text-blue-100 text-sm mb-4">After uploading, see facility rankings and results</p>
+                    <a href="{{ url_for('routes.performance') }}"
+                       class="inline-flex items-center justify-center w-full px-4 py-3 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition mb-3">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        View Performance Dashboard
+                    </a>
+                    <a href="{{ url_for('routes.results') }}"
+                       class="inline-flex items-center justify-center w-full px-4 py-3 bg-blue-600/20 text-white rounded-xl font-semibold hover:bg-blue-600/30 transition border border-white/20">
+                        <i class="fas fa-trophy mr-2"></i>
+                        View Winners & Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Utility to render a single file preview
+    function renderSingleFile(listEl, file) {
+        listEl.innerHTML = '';
+        if (!file) return;
+
+        const fileItem = document.createElement('div');
+        fileItem.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200';
+        
+        // Check file size (50MB limit)
+        const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+        const isTooLarge = file.size > maxSize;
+        
+        fileItem.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-file-excel ${isTooLarge ? 'text-red-500' : 'text-green-500'} mr-3"></i>
+                <div>
+                    <span class="text-sm font-medium ${isTooLarge ? 'text-red-700' : 'text-slate-700'}">${file.name}</span>
+                    ${isTooLarge ? '<p class="text-xs text-red-600 mt-1">File exceeds 50MB limit</p>' : ''}
+                </div>
+            </div>
+            <span class="text-xs text-slate-500">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+        `;
+        listEl.appendChild(fileItem);
+        
+        // Update submit button if file is too large
+        updateSubmitButton();
+    }
+
+    // Update submit button based on file sizes
+    function updateSubmitButton() {
+        const dvvFile = document.getElementById('dvvInput').files[0];
+        const clientFile = document.getElementById('clientInput').files[0];
+        const vlFile = document.getElementById('vlInput').files[0];
+        
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        
+        const hasAllFiles = dvvFile && clientFile && vlFile;
+        const hasLargeFile = (dvvFile && dvvFile.size > maxSize) || 
+                           (clientFile && clientFile.size > maxSize) || 
+                           (vlFile && vlFile.size > maxSize);
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = !hasAllFiles || hasLargeFile;
+    }
+
+    // Input + list bindings
+    const dvvInput = document.getElementById('dvvInput');
+    const clientInput = document.getElementById('clientInput');
+    const vlInput = document.getElementById('vlInput');
+
+    const dvvList = document.getElementById('dvvList');
+    const clientList = document.getElementById('clientList');
+    const vlList = document.getElementById('vlList');
+
+    dvvInput.addEventListener('change', () => renderSingleFile(dvvList, dvvInput.files[0]));
+    clientInput.addEventListener('change', () => renderSingleFile(clientList, clientInput.files[0]));
+    vlInput.addEventListener('change', () => renderSingleFile(vlList, vlInput.files[0]));
+
+    // Drag and drop setup (per drop zone)
+    function setupDrop(dropSelector, inputEl, listEl) {
+        const dropArea = document.querySelector(dropSelector);
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.classList.add('border-emerald-400', 'bg-emerald-50');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.classList.remove('border-emerald-400', 'bg-emerald-50');
+            }, false);
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (!files || files.length === 0) return;
+            inputEl.files = files;
+            renderSingleFile(listEl, inputEl.files[0]);
+        }, false);
+    }
+
+    setupDrop('.dvv-drop', dvvInput, dvvList);
+    setupDrop('.client-drop', clientInput, clientList);
+    setupDrop('.vl-drop', vlInput, vlList);
+
+    // Form submission handling
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        const processingStatus = document.getElementById('processingStatus');
+        
+        // Check file sizes before submitting
+        const files = [
+            document.getElementById('dvvInput').files[0],
+            document.getElementById('clientInput').files[0],
+            document.getElementById('vlInput').files[0]
+        ];
+        
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        
+        for (const file of files) {
+            if (file && file.size > maxSize) {
+                e.preventDefault();
+                alert(`File "${file.name}" exceeds the 50MB limit. Please upload a smaller file.`);
+                return;
+            }
+        }
+        
+        // Show processing status
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i> Processing...';
+        processingStatus.classList.remove('hidden');
+    });
+</script>
+{% endblock %}

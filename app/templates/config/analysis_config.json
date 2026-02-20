@@ -1,0 +1,31 @@
+{
+    "client_level": {
+      "start_col": "Sex",
+      "end_col": "Biometric enrollment form available in clients folder",
+      "data_column": "C",
+      "fallback_start_cols": ["sex", "gender", "patient sex"],
+      "fallback_end_cols": ["biometric", "biometric enrollment", "enrollment form"]
+    },
+    "vl_unsuppressed": {
+      "start_col": "Sex",
+      "end_col": "Does the folder contain the VL result form used to commence EAC?",
+      "data_column": "C",
+      "fallback_start_cols": ["sex", "gender", "patient sex"],
+      "fallback_end_cols": ["vl result form", "eac form", "commence eac", "folder contain", "am", ""],
+      "column_position_fallback": 39
+    },
+    "thresholds": {
+      "excellent": 90,
+      "good": 75,
+      "poor": 50
+    },
+    "performance": {
+      "cache_size": 32,
+      "max_sheet_rows": 10000
+    },
+    "logging": {
+      "level": "INFO",
+      "log_to_file": true,
+      "log_file": "analysis.log"
+    }
+  }
